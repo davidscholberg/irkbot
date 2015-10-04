@@ -102,4 +102,5 @@ If you omit the config function, the register function call would be:
 * Give each module its own config section.
 * Allow each module to specify a command prefix in the config.
 * Implement a "help" module that displays the bot's commands.
+* Add bot "owner" option and allow  for some modules to be privileged.
 * Implement max message length handling.
