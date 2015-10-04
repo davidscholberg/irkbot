@@ -2,66 +2,21 @@ package main
 
 import (
     "fmt"
-    "io/ioutil"
-    "math/rand"
     "os"
     "strings"
     "time"
     goirc "github.com/thoj/go-ircevent"
-    urbandict "github.com/davidscholberg/go-urbandict"
     gcfg "gopkg.in/gcfg.v1"
+    "github.com/davidscholberg/irkbot/lib"
+    "github.com/davidscholberg/irkbot/lib/modules/modpm"
 )
-
-type config struct {
-    User struct {
-        Nick string
-        User string
-    }
-    Server struct {
-        Host string
-        Port string
-    }
-    Channel struct {
-        Channelname string
-        Greeting string
-    }
-    Module struct {
-        Insult_swearfile string
-    }
-}
-
-type privmsg struct {
-    msg string
-    msgArgs []string
-    dest string
-    event *goirc.Event
-    conn *goirc.Connection
-    sayChan chan say
-}
-
-type say struct {
-    conn *goirc.Connection
-    dest string
-    msg string
-}
-
-var swears []string
 
 func main() {
     // get config
     confPath := fmt.Sprintf("%s/.config/irkbot/irkbot.ini", os.Getenv("HOME"))
-    cfg := config{}
+    cfg := lib.Config{}
     err := gcfg.ReadFileInto(&cfg, confPath)
     if err != nil {
-        fmt.Fprintln(os.Stderr, err)
-        return
-    }
-
-    // initialize swear array
-    swearBytes, err := ioutil.ReadFile(cfg.Module.Insult_swearfile)
-    if err == nil {
-        swears = strings.Split(string(swearBytes), "\n")
-    } else {
         fmt.Fprintln(os.Stderr, err)
         return
     }
@@ -89,28 +44,31 @@ func main() {
         }
     })
 
-    privmsgCallbacks := []func(*privmsg) bool{
-        privmsgEchoName,
-        privmsgQuit,
-        privmsgInsult,
-        privmsgUrban}
+    // function calls for module-specific configuration
+    modpm.ConfigInsult(&cfg)
+
+    privmsgCallbacks := []func(*lib.Privmsg) bool{
+        modpm.EchoName,
+        modpm.Quit,
+        modpm.Insult,
+        modpm.Urban}
 
     // TODO: start multiple sayLoops, one per conn
     // TODO: pass conn to sayLoop instead of privmsg callbacks?
-    sayChan := make(chan say)
+    sayChan := make(chan lib.Say)
     go sayLoop(sayChan)
 
     conn.AddCallback("PRIVMSG", func(e *goirc.Event) {
-        p := privmsg{}
-        p.msg = e.Message()
-        p.msgArgs = strings.Split(p.msg, " ")
-        p.dest = e.Arguments[0]
-        if !strings.HasPrefix(p.dest, "#") {
-            p.dest = e.Nick
+        p := lib.Privmsg{}
+        p.Msg = e.Message()
+        p.MsgArgs = strings.Split(p.Msg, " ")
+        p.Dest = e.Arguments[0]
+        if !strings.HasPrefix(p.Dest, "#") {
+            p.Dest = e.Nick
         }
-        p.event = e
-        p.conn = conn
-        p.sayChan = sayChan
+        p.Event = e
+        p.Conn = conn
+        p.SayChan = sayChan
 
         for _, callback := range privmsgCallbacks {
             if callback(&p) {
@@ -119,105 +77,18 @@ func main() {
         }
     })
 
+    // TODO: add time-based modules
+
     conn.Loop()
 }
 
-func privmsgEchoName(p *privmsg) bool {
-    if p.msg != "irkbot!" {
-        return false
-    }
-    p.sayChan <- say{p.conn, p.dest, fmt.Sprintf("%s!", p.event.Nick)}
-    return true
-}
-
-func privmsgQuit(p *privmsg) bool {
-    if p.msg != "..quit" {
-        return false
-    }
-    p.conn.Quit()
-    return true
-}
-
-func privmsgInsult(p *privmsg) bool {
-    if ! strings.HasPrefix(p.msg, "..insult") {
-        return false
-    }
-
-    if len(swears) == 0 {
-        p.sayChan <- say{p.conn, p.dest, "error: no swears"}
-        return true
-    }
-
-    insultee := p.event.Nick
-    if len(p.msgArgs) > 1 {
-        insultee = strings.Join(p.msgArgs[1:], " ")
-    }
-
-    response := fmt.Sprintf(
-        "%s: you %s %s",
-        insultee,
-        swears[rand.Intn(len(swears))],
-        swears[rand.Intn(len(swears))])
-
-    p.sayChan <- say{p.conn, p.dest, response}
-    return true
-}
-
-func privmsgUrban(p *privmsg) bool {
-    if ! strings.HasPrefix(p.msg, "..urban") {
-        return false
-    }
-
-    var def *urbandict.Definition
-    var err error
-    nick := p.event.Nick
-    if len(p.msgArgs) == 1 {
-        def, err = urbandict.Random()
-        if err != nil {
-            p.sayChan <- say{
-                p.conn,
-                p.dest,
-                fmt.Sprintf("%s: %s", nick, err.Error())}
-            return true
-        }
-    } else {
-        def, err = urbandict.Define(strings.Join(p.msgArgs[1:], " "))
-        if err != nil {
-            p.sayChan <- say{
-                p.conn,
-                p.dest,
-                fmt.Sprintf("%s: %s", nick, err.Error())}
-            return true
-        }
-    }
-
-    // TODO: implement max message length handling
-
-    p.sayChan <- say{
-        p.conn,
-        p.dest,
-        fmt.Sprintf("%s: Top definition for \"%s\"", nick, def.Word)}
-    for _, line := range strings.Split(def.Definition, "\r\n") {
-        p.sayChan <- say{p.conn, p.dest, fmt.Sprintf("%s: %s", nick, line)}
-    }
-    p.sayChan <- say{p.conn, p.dest, fmt.Sprintf("%s: Example:", nick)}
-    for _, line := range strings.Split(def.Example, "\r\n") {
-        p.sayChan <- say{p.conn, p.dest, fmt.Sprintf("%s: %s", nick, line)}
-    }
-    p.sayChan <- say{
-        p.conn,
-        p.dest,
-        fmt.Sprintf("%s: permalink: %s", nick, def.Permalink)}
-    return true
-}
-
-func sayLoop(sayChan chan say) {
+func sayLoop(sayChan chan lib.Say) {
     sayTimeouts := make(map[string]time.Time)
 
     for s := range sayChan {
         sleepDuration := time.Duration(0)
 
-        if prevTime, ok := sayTimeouts[s.dest]; ok {
+        if prevTime, ok := sayTimeouts[s.Dest]; ok {
             sleepDuration = time.Second - time.Now().Sub(prevTime)
             if sleepDuration < 0 {
                 sleepDuration = time.Duration(0)
@@ -225,8 +96,8 @@ func sayLoop(sayChan chan say) {
         }
 
         time.Sleep(sleepDuration)
-        sayTimeouts[s.dest] = time.Now()
+        sayTimeouts[s.Dest] = time.Now()
 
-        s.conn.Privmsg(s.dest, s.msg)
+        s.Conn.Privmsg(s.Dest, s.Msg)
     }
 }
