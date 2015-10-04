@@ -23,6 +23,7 @@ type config struct {
     }
     Channel struct {
         Channelname string
+        Greeting string
     }
     Module struct {
         Insult_swearfile string
@@ -83,7 +84,9 @@ func main() {
     })
 
     conn.AddCallback("366", func(e *goirc.Event) {
-        conn.Privmsg(e.Arguments[1], "yo yo yo\n")
+        if len(cfg.Channel.Greeting) != 0 {
+            conn.Privmsg(e.Arguments[1], cfg.Channel.Greeting)
+        }
     })
 
     privmsgCallbacks := []func(*privmsg) bool{
