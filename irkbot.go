@@ -44,14 +44,14 @@ func main() {
         }
     })
 
-    // function calls for module-specific configuration
-    modpm.ConfigInsult(&cfg)
-
-    privmsgCallbacks := []func(*lib.Privmsg) bool{
-        modpm.EchoName,
-        modpm.Quit,
-        modpm.Insult,
-        modpm.Urban}
+    // register modules
+    var pmMods []*lib.Module
+    modpm.RegisterMods(func(m *lib.Module) {
+        pmMods = append(pmMods, m)
+        if m.Configure != nil {
+            m.Configure(&cfg)
+        }
+    })
 
     // TODO: start multiple sayLoops, one per conn
     // TODO: pass conn to sayLoop instead of privmsg callbacks?
@@ -70,8 +70,8 @@ func main() {
         p.Conn = conn
         p.SayChan = sayChan
 
-        for _, callback := range privmsgCallbacks {
-            if callback(&p) {
+        for _, mod := range pmMods {
+            if mod.Run(&p) {
                 break
             }
         }

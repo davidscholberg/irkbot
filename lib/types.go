@@ -23,6 +23,11 @@ type Config struct {
     }
 }
 
+type Module struct {
+    Configure func(*Config)
+    Run func(*Privmsg) bool
+}
+
 type Privmsg struct {
     Msg string
     MsgArgs []string
