@@ -24,6 +24,9 @@ type config struct {
     Channel struct {
         Channelname string
     }
+    Module struct {
+        Insult_swearfile string
+    }
 }
 
 type privmsg struct {
@@ -53,7 +56,7 @@ func main() {
     }
 
     // initialize swear array
-    swearBytes, err := ioutil.ReadFile("badwords.txt")
+    swearBytes, err := ioutil.ReadFile(cfg.Module.Insult_swearfile)
     if err == nil {
         swears = strings.Split(string(swearBytes), "\n")
     } else {
