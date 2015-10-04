@@ -33,12 +33,13 @@ type privmsg struct {
     msg string
     msgArgs []string
     dest string
-    e *goirc.Event
-    s chan say
+    event *goirc.Event
+    conn *goirc.Connection
+    sayChan chan say
 }
 
 type say struct {
-    c *goirc.Connection
+    conn *goirc.Connection
     dest string
     msg string
 }
@@ -85,12 +86,14 @@ func main() {
         conn.Privmsg(e.Arguments[1], "yo yo yo\n")
     })
 
-    privmsgCallbacks := []func(*privmsg, *goirc.Connection) bool{
+    privmsgCallbacks := []func(*privmsg) bool{
         privmsgEchoName,
         privmsgQuit,
         privmsgInsult,
         privmsgUrban}
 
+    // TODO: start multiple sayLoops, one per conn
+    // TODO: pass conn to sayLoop instead of privmsg callbacks?
     sayChan := make(chan say)
     go sayLoop(sayChan)
 
@@ -102,11 +105,12 @@ func main() {
         if !strings.HasPrefix(p.dest, "#") {
             p.dest = e.Nick
         }
-        p.e = e
-        p.s = sayChan
+        p.event = e
+        p.conn = conn
+        p.sayChan = sayChan
 
         for _, callback := range privmsgCallbacks {
-            if callback(&p, conn) {
+            if callback(&p) {
                 break
             }
         }
@@ -115,33 +119,33 @@ func main() {
     conn.Loop()
 }
 
-func privmsgEchoName(p *privmsg, c *goirc.Connection) bool {
+func privmsgEchoName(p *privmsg) bool {
     if p.msg != "irkbot!" {
         return false
     }
-    p.s <- say{c, p.dest, fmt.Sprintf("%s!", p.e.Nick)}
+    p.sayChan <- say{p.conn, p.dest, fmt.Sprintf("%s!", p.event.Nick)}
     return true
 }
 
-func privmsgQuit(p *privmsg, c *goirc.Connection) bool {
+func privmsgQuit(p *privmsg) bool {
     if p.msg != "..quit" {
         return false
     }
-    c.Quit()
+    p.conn.Quit()
     return true
 }
 
-func privmsgInsult(p *privmsg, c *goirc.Connection) bool {
+func privmsgInsult(p *privmsg) bool {
     if ! strings.HasPrefix(p.msg, "..insult") {
         return false
     }
 
     if len(swears) == 0 {
-        p.s <- say{c, p.dest, "error: no swears"}
+        p.sayChan <- say{p.conn, p.dest, "error: no swears"}
         return true
     }
 
-    insultee := p.e.Nick
+    insultee := p.event.Nick
     if len(p.msgArgs) > 1 {
         insultee = strings.Join(p.msgArgs[1:], " ")
     }
@@ -152,51 +156,55 @@ func privmsgInsult(p *privmsg, c *goirc.Connection) bool {
         swears[rand.Intn(len(swears))],
         swears[rand.Intn(len(swears))])
 
-    p.s <- say{c, p.dest, response}
+    p.sayChan <- say{p.conn, p.dest, response}
     return true
 }
 
-func privmsgUrban(p *privmsg, c *goirc.Connection) bool {
+func privmsgUrban(p *privmsg) bool {
     if ! strings.HasPrefix(p.msg, "..urban") {
         return false
     }
 
     var def *urbandict.Definition
     var err error
+    nick := p.event.Nick
     if len(p.msgArgs) == 1 {
         def, err = urbandict.Random()
         if err != nil {
-            p.s <- say{c, p.dest, fmt.Sprintf("%s: %s", p.e.Nick, err.Error())}
+            p.sayChan <- say{
+                p.conn,
+                p.dest,
+                fmt.Sprintf("%s: %s", nick, err.Error())}
             return true
         }
     } else {
         def, err = urbandict.Define(strings.Join(p.msgArgs[1:], " "))
         if err != nil {
-            p.s <- say{c, p.dest, fmt.Sprintf("%s: %s", p.e.Nick, err.Error())}
+            p.sayChan <- say{
+                p.conn,
+                p.dest,
+                fmt.Sprintf("%s: %s", nick, err.Error())}
             return true
         }
     }
 
     // TODO: implement max message length handling
 
-    p.s <- say{
-        c,
+    p.sayChan <- say{
+        p.conn,
         p.dest,
-        fmt.Sprintf(
-            "%s: Top definition for \"%s\"",
-            p.e.Nick,
-            def.Word)}
+        fmt.Sprintf("%s: Top definition for \"%s\"", nick, def.Word)}
     for _, line := range strings.Split(def.Definition, "\r\n") {
-        p.s <- say{c, p.dest, fmt.Sprintf("%s: %s", p.e.Nick, line)}
+        p.sayChan <- say{p.conn, p.dest, fmt.Sprintf("%s: %s", nick, line)}
     }
-    p.s <- say{c, p.dest, fmt.Sprintf("%s: Example:", p.e.Nick)}
+    p.sayChan <- say{p.conn, p.dest, fmt.Sprintf("%s: Example:", nick)}
     for _, line := range strings.Split(def.Example, "\r\n") {
-        p.s <- say{c, p.dest, fmt.Sprintf("%s: %s", p.e.Nick, line)}
+        p.sayChan <- say{p.conn, p.dest, fmt.Sprintf("%s: %s", nick, line)}
     }
-    p.s <- say{
-        c,
+    p.sayChan <- say{
+        p.conn,
         p.dest,
-        fmt.Sprintf("%s: permalink: %s", p.e.Nick, def.Permalink)}
+        fmt.Sprintf("%s: permalink: %s", nick, def.Permalink)}
     return true
 }
 
@@ -216,6 +224,6 @@ func sayLoop(sayChan chan say) {
         time.Sleep(sleepDuration)
         sayTimeouts[s.dest] = time.Now()
 
-        s.c.Privmsg(s.dest, s.msg)
+        s.conn.Privmsg(s.dest, s.msg)
     }
 }
