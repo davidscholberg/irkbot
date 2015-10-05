@@ -99,6 +99,7 @@ If you omit the config function, the register function call would be:
 
 * Allow multiple servers and channels.
 * Add time-based modules.
+* Create centralized "say" function that wraps the complexity around the say chan and struct.
 * Give each module its own config section.
 * Allow each module to specify a command prefix in the config.
 * Implement a "help" module that displays the bot's commands.
