@@ -15,7 +15,17 @@ func Urban(p *lib.Privmsg) bool {
     var def *urbandict.Definition
     var err error
     nick := p.Event.Nick
-    if len(p.MsgArgs) == 1 {
+    isWotd := strings.HasPrefix(p.Msg, "..urban-wotd")
+    if isWotd {
+        def, err = urbandict.WordOfTheDay()
+        if err != nil {
+            p.SayChan <- lib.Say{
+                p.Conn,
+                p.Dest,
+                fmt.Sprintf("%s: %s", nick, err.Error())}
+            return true
+        }
+    } else if len(p.MsgArgs) == 1 {
         def, err = urbandict.Random()
         if err != nil {
             p.SayChan <- lib.Say{
@@ -37,10 +47,17 @@ func Urban(p *lib.Privmsg) bool {
 
     // TODO: implement max message length handling
 
-    p.SayChan <- lib.Say{
-        p.Conn,
-        p.Dest,
-        fmt.Sprintf("%s: Top definition for \"%s\"", nick, def.Word)}
+    if isWotd {
+        p.SayChan <- lib.Say{
+            p.Conn,
+            p.Dest,
+            fmt.Sprintf("%s: Word of the day: \"%s\"", nick, def.Word)}
+    } else {
+        p.SayChan <- lib.Say{
+            p.Conn,
+            p.Dest,
+            fmt.Sprintf("%s: Top definition for \"%s\"", nick, def.Word)}
+    }
     for _, line := range strings.Split(def.Definition, "\r\n") {
         p.SayChan <- lib.Say{p.Conn, p.Dest, fmt.Sprintf("%s: %s", nick, line)}
     }
