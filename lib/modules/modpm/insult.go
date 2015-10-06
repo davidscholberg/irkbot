@@ -27,7 +27,7 @@ func Insult(p *lib.Privmsg) bool {
     }
 
     if len(swears) == 0 {
-        p.SayChan <- lib.Say{p.Conn, p.Dest, "error: no swears"}
+        lib.Say(p, "error: no swears")
         return true
     }
 
@@ -42,6 +42,6 @@ func Insult(p *lib.Privmsg) bool {
         swears[rand.Intn(len(swears))],
         swears[rand.Intn(len(swears))])
 
-    p.SayChan <- lib.Say{p.Conn, p.Dest, response}
+    lib.Say(p, response)
     return true
 }

@@ -4,7 +4,6 @@ import (
     "fmt"
     "os"
     "strings"
-    "time"
     goirc "github.com/thoj/go-ircevent"
     gcfg "gopkg.in/gcfg.v1"
     "github.com/davidscholberg/irkbot/lib"
@@ -55,8 +54,8 @@ func main() {
 
     // TODO: start multiple sayLoops, one per conn
     // TODO: pass conn to sayLoop instead of privmsg callbacks?
-    sayChan := make(chan lib.Say)
-    go sayLoop(sayChan)
+    sayChan := make(chan lib.SayMsg)
+    go lib.SayLoop(sayChan)
 
     conn.AddCallback("PRIVMSG", func(e *goirc.Event) {
         p := lib.Privmsg{}
@@ -80,24 +79,4 @@ func main() {
     // TODO: add time-based modules
 
     conn.Loop()
-}
-
-func sayLoop(sayChan chan lib.Say) {
-    sayTimeouts := make(map[string]time.Time)
-
-    for s := range sayChan {
-        sleepDuration := time.Duration(0)
-
-        if prevTime, ok := sayTimeouts[s.Dest]; ok {
-            sleepDuration = time.Second - time.Now().Sub(prevTime)
-            if sleepDuration < 0 {
-                sleepDuration = time.Duration(0)
-            }
-        }
-
-        time.Sleep(sleepDuration)
-        sayTimeouts[s.Dest] = time.Now()
-
-        s.Conn.Privmsg(s.Dest, s.Msg)
-    }
 }

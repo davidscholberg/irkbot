@@ -34,10 +34,10 @@ type Privmsg struct {
     Dest string
     Event *goirc.Event
     Conn *goirc.Connection
-    SayChan chan Say
+    SayChan chan SayMsg
 }
 
-type Say struct {
+type SayMsg struct {
     Conn *goirc.Connection
     Dest string
     Msg string

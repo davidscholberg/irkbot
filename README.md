@@ -74,8 +74,8 @@ func Echo(p *lib.Privmsg) bool {
     // Grab the rest of the message.
     msg := strings.Join(p.MsgArgs[1:], " ")
 
-    // Output the message to the Say chan (which does message rate-limiting)
-    p.SayChan <- lib.Say{p.Conn, p.Dest, msg}
+    // Call the Say function (which does message rate-limiting)
+    lib.Say(p, msg)
 
     // Returning true causes this module to "consume" this PRIVMSG such that no
     // modules after this one will be called for this PRIVMSG.
@@ -99,7 +99,6 @@ If you omit the config function, the register function call would be:
 
 * Allow multiple servers and channels.
 * Add time-based modules.
-* Create centralized "say" function that wraps the complexity around the say chan and struct.
 * Give each module its own config section.
 * Allow each module to specify a command prefix in the config.
 * Implement a "help" module that displays the bot's commands.
