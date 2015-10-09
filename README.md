@@ -99,6 +99,7 @@ If you omit the config function, the register function call would be:
 
 * Allow multiple servers and channels.
 * Add time-based modules.
+* Add message command to allow messages to be sent to other channels.
 * Give each module its own config section.
 * Allow each module to specify a command prefix in the config.
 * Implement a "help" module that displays the bot's commands.
