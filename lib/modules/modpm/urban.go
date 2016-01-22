@@ -12,6 +12,16 @@ func Urban(p *lib.Privmsg) bool {
         return false
     }
 
+    if (strings.HasPrefix(p.Msg, "..urban-trending")) {
+        showTrending(p)
+    } else {
+        showDefinition(p)
+    }
+
+    return true
+}
+
+func showDefinition(p *lib.Privmsg) {
     var def *urbandict.Definition
     var err error
     nick := p.Event.Nick
@@ -25,7 +35,7 @@ func Urban(p *lib.Privmsg) bool {
     }
     if err != nil {
         lib.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
-        return true
+        return
     }
 
     // TODO: implement max message length handling
@@ -43,5 +53,24 @@ func Urban(p *lib.Privmsg) bool {
         lib.Say(p, fmt.Sprintf("%s: %s", nick, line))
     }
     lib.Say(p, fmt.Sprintf("%s: permalink: %s", nick, def.Permalink))
-    return true
+}
+
+func showTrending(p *lib.Privmsg) {
+    nick := p.Event.Nick
+
+    trendingWords, err := urbandict.Trending()
+    if err != nil {
+        lib.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
+        return
+    }
+
+    lib.Say(p, fmt.Sprintf("%s: Top %d trending words:",
+        nick,
+        len(trendingWords)))
+
+    for i, word := range trendingWords {
+        lib.Say(p, fmt.Sprintf("%s: %d. %s", nick, i + 1, word))
+    }
+
+    return
 }
