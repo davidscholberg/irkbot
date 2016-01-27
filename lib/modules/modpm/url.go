@@ -42,7 +42,7 @@ func getHtmlTitle(url string) (string, error) {
         return "", err
     }
     if len(title) == 0 {
-        return "", fmt.Errorf("word of the day not found")
+        return "", fmt.Errorf("title not found")
     }
 
     return title, nil
