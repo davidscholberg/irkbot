@@ -97,6 +97,8 @@ If you omit the config function, the register function call would be:
 
 ### TODO
 
+* Make URL module ignore 4xx response codes.
+* Remove newlines from HTML title for URL module.
 * Make reddit module.
 * Allow multiple servers and channels.
 * Add time-based modules.
