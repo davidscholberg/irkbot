@@ -4,6 +4,8 @@ import (
     "fmt"
     "golang.org/x/net/html"
     "net/http"
+    "strings"
+    urllib "net/url"
     "github.com/davidscholberg/irkbot/lib"
     "github.com/mvdan/xurls"
 )
@@ -13,6 +15,10 @@ func Url(p *lib.Privmsg) bool {
     urls := xurls.Strict.FindAllString(p.Msg, -1)
 
     for _, url := range urls {
+        if v, _ := validateUrl(url); !v {
+            lib.Say(p, fmt.Sprintf("%s: :|", p.Event.Nick))
+            return false
+        }
         title, err := getHtmlTitle(url)
         if err != nil {
             continue
@@ -46,6 +52,23 @@ func getHtmlTitle(url string) (string, error) {
     }
 
     return title, nil
+}
+
+// validateUrl ensures that the given URL is safe to GET.
+func validateUrl(urlStr string) (bool, error) {
+    url, err := urllib.Parse(urlStr)
+    if err != nil {
+        return false, err
+    }
+
+    // TODO: add CIDR matching
+    if strings.HasPrefix(url.Host, "127.") ||
+        strings.HasPrefix(url.Host, "192.168.") ||
+        strings.HasPrefix(url.Host, "localhost") {
+        return false, fmt.Errorf("host not allowed")
+    }
+
+    return true, nil
 }
 
 // searchForHtmlTitle searches the parsed html document for the title.
