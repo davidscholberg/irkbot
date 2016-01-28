@@ -23,6 +23,9 @@ func Url(p *lib.Privmsg) bool {
         if err != nil {
             continue
         }
+        title = strings.Replace(title, "\n", "", -1)
+        title = strings.Replace(title, "\r", "", -1)
+        title = strings.TrimSpace(title)
         lib.Say(p, fmt.Sprintf("^ %s - [%s]", title, url))
     }
 
