@@ -38,6 +38,11 @@ func getHtmlTitle(url string) (string, error) {
     }
     defer response.Body.Close()
 
+    // ignore response codes 400 and above
+    if response.StatusCode >= 400 {
+        return "", fmt.Errorf("received status %d", response.StatusCode)
+    }
+
     doctree, err := html.Parse(response.Body)
     if err != nil {
         return "", err
