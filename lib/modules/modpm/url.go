@@ -17,7 +17,7 @@ func Url(p *lib.Privmsg) bool {
     for _, url := range urls {
         if v, _ := validateUrl(url); !v {
             lib.Say(p, fmt.Sprintf("%s: :|", p.Event.Nick))
-            return false
+            break
         }
         title, err := getHtmlTitle(url)
         if err != nil {
