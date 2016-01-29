@@ -20,8 +20,7 @@ func Url(p *lib.Privmsg) bool {
             continue
         }
         if v, _ := validateUrl(url); !v {
-            lib.Say(p, fmt.Sprintf("%s: :|", p.Event.Nick))
-            break
+            continue
         }
         host := url.Host
         title, err := getHtmlTitle(urlStr)
