@@ -14,7 +14,7 @@ go get github.com/davidscholberg/irkbot
 
 Irkbot uses an [INI](https://en.wikipedia.org/wiki/INI_file)-style configuration format. The config file path is expected to be `$HOME/.config/irkbot/irkbot.ini`. Below is a sample configuration file:
 
-```
+```ini
 [user]
 nick = mynick
 user = mynick
@@ -51,7 +51,7 @@ Below is an example PRIVMSG module that adds an echo command to the bot. The ech
 
 This module file belongs in the `lib/modules/modpm/` directory.
 
-```golang
+```go
 // modpm is the package for all PRIVMSG modules
 package modpm
 
@@ -85,13 +85,13 @@ func Echo(p *lib.Privmsg) bool {
 
 The final step is to add the echo module functions to the modpm.RegisterMods function in `lib/modules/modpm/register.go`:
 
-```golang
+```go
     registerMod(&lib.Module{ConfigEcho, Echo})
 ```
 
 If you omit the config function, the register function call would be:
 
-```golang
+```go
     registerMod(&lib.Module{nil, Echo})
 ```
 
