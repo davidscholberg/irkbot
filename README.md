@@ -97,12 +97,15 @@ If you omit the config function, the register function call would be:
 
 ### TODO
 
+* Implement logging.
+* Allow config file to be passed in as an argument.
+* Implement a "help" module that displays the bot's commands.
+* Allow each module to specify a command prefix in the config.
+* Implement unit testing.
 * Make reddit module.
 * Allow multiple servers and channels.
 * Add time-based modules.
 * Add message command to allow messages to be sent to other channels.
 * Give each module its own config section.
-* Allow each module to specify a command prefix in the config.
-* Implement a "help" module that displays the bot's commands.
 * Add bot "owner" option and allow  for some modules to be privileged.
 * Implement max message length handling.
