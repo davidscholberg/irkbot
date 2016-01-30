@@ -38,35 +38,6 @@ func Url(p *lib.Privmsg) bool {
     return false
 }
 
-// getHtmlTitle returns the HTML title found at the given URL.
-func getHtmlTitle(url string) (string, error) {
-    response, err := http.Get(url)
-    if err != nil {
-        return "", err
-    }
-    defer response.Body.Close()
-
-    // ignore response codes 400 and above
-    if response.StatusCode >= 400 {
-        return "", fmt.Errorf("received status %d", response.StatusCode)
-    }
-
-    doctree, err := html.Parse(response.Body)
-    if err != nil {
-        return "", err
-    }
-
-    title, err := searchForHtmlTitle(doctree)
-    if err != nil {
-        return "", err
-    }
-    if len(title) == 0 {
-        return "", fmt.Errorf("title not found")
-    }
-
-    return title, nil
-}
-
 // validateUrl ensures that the given URL is safe to GET.
 func validateUrl(url *urllib.URL) (bool, error) {
     privateSubnets := []string{
@@ -112,6 +83,35 @@ func isCidrMatch(ip *net.IP, subnets []string) (bool, error) {
     }
 
     return false, nil
+}
+
+// getHtmlTitle returns the HTML title found at the given URL.
+func getHtmlTitle(url string) (string, error) {
+    response, err := http.Get(url)
+    if err != nil {
+        return "", err
+    }
+    defer response.Body.Close()
+
+    // ignore response codes 400 and above
+    if response.StatusCode >= 400 {
+        return "", fmt.Errorf("received status %d", response.StatusCode)
+    }
+
+    doctree, err := html.Parse(response.Body)
+    if err != nil {
+        return "", err
+    }
+
+    title, err := searchForHtmlTitle(doctree)
+    if err != nil {
+        return "", err
+    }
+    if len(title) == 0 {
+        return "", fmt.Errorf("title not found")
+    }
+
+    return title, nil
 }
 
 // searchForHtmlTitle searches the parsed html document for the title.
