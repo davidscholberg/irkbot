@@ -3,6 +3,7 @@ package modpm
 import (
     "fmt"
     "golang.org/x/net/html"
+    "net"
     "net/http"
     "strings"
     urllib "net/url"
@@ -68,14 +69,49 @@ func getHtmlTitle(url string) (string, error) {
 
 // validateUrl ensures that the given URL is safe to GET.
 func validateUrl(url *urllib.URL) (bool, error) {
-    // TODO: add CIDR matching
-    if strings.HasPrefix(url.Host, "127.") ||
-        strings.HasPrefix(url.Host, "192.168.") ||
-        strings.HasPrefix(url.Host, "localhost") {
+    privateSubnets := []string{
+        "127.0.0.0/8",
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+        "::1/128",
+        "fc00::/7"}
+
+    ips, err := net.LookupIP(url.Host)
+    if err != nil {
+        return false, err
+    }
+    if len(ips) == 0 {
+        return false, fmt.Errorf("no IPs found for %s", url.Host)
+    }
+
+    hostNotAllowed, err := isCidrMatch(&ips[0], privateSubnets)
+    if err != nil {
+        return false, err
+    }
+    if hostNotAllowed {
         return false, fmt.Errorf("host not allowed")
     }
 
     return true, nil
+}
+
+// isCidrMatch tests if a given IP is in any of a given set of CIDR subnets.
+func isCidrMatch(ip *net.IP, subnets []string) (bool, error) {
+    var cidr *net.IPNet
+    var err error
+
+    for _, subnet := range(subnets) {
+        _, cidr, err = net.ParseCIDR(subnet)
+        if err != nil {
+            return false, err
+        }
+        if cidr.Contains(*ip) {
+            return true, nil
+        }
+    }
+
+    return false, nil
 }
 
 // searchForHtmlTitle searches the parsed html document for the title.
