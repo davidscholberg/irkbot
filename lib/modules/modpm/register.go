@@ -5,9 +5,14 @@ import (
 )
 
 func RegisterMods(registerMod func(m *lib.Module)) {
-	registerMod(&lib.Module{nil, Url})
-	registerMod(&lib.Module{ConfigEchoName, EchoName})
-	registerMod(&lib.Module{ConfigInsult, Insult})
-	registerMod(&lib.Module{nil, Quit})
-	registerMod(&lib.Module{nil, Urban})
+	modules := []*lib.Module{
+		&lib.Module{nil, Url},
+		&lib.Module{ConfigEchoName, EchoName},
+		&lib.Module{ConfigInsult, Insult},
+		&lib.Module{nil, Quit},
+		&lib.Module{nil, Urban}}
+
+	for _, m := range modules {
+		registerMod(m)
+	}
 }
