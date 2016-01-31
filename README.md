@@ -56,43 +56,44 @@ This module file belongs in the `lib/modules/modpm/` directory.
 package modpm
 
 import (
-    "github.com/davidscholberg/irkbot/lib"
+	"github.com/davidscholberg/irkbot/lib"
 )
 
 func ConfigEcho(cfg *lib.Config) {
-    // This is an optional function to configure the module before it is run.
-    // This function can be omitted if no configuration is needed.
+	// This is an optional function to configure the module. It is called only
+	// once when irkbot starts up.
+	// This function can be omitted if no configuration is needed.
 }
 
 func Echo(p *lib.Privmsg) bool {
-    if ! strings.HasPrefix(p.Msg, "..echo") {
-        // If this is not an echo command, return right away.
-        // Returning false means that the next module in line will be called.
-        return false
-    }
+	if ! strings.HasPrefix(p.Msg, "..echo") {
+		// If this is not an echo command, return right away.
+		// Returning false means that the next module in line will be called.
+		return false
+	}
 
-    // Grab the rest of the message.
-    msg := strings.Join(p.MsgArgs[1:], " ")
+	// Grab the rest of the message.
+	msg := strings.Join(p.MsgArgs[1:], " ")
 
-    // Call the Say function (which does message rate-limiting)
-    lib.Say(p, msg)
+	// Call the Say function (which does message rate-limiting)
+	lib.Say(p, msg)
 
-    // Returning true causes this module to "consume" this PRIVMSG such that no
-    // modules after this one will be called for this PRIVMSG.
-    return true
+	// Returning true causes this module to "consume" this PRIVMSG such that no
+	// modules after this one will be called for this PRIVMSG.
+	return true
 }
 ```
 
 The final step is to add the echo module functions to the modpm.RegisterMods function in `lib/modules/modpm/register.go`:
 
 ```go
-    registerMod(&lib.Module{ConfigEcho, Echo})
+	registerMod(&lib.Module{ConfigEcho, Echo})
 ```
 
 If you omit the config function, the register function call would be:
 
 ```go
-    registerMod(&lib.Module{nil, Echo})
+	registerMod(&lib.Module{nil, Echo})
 ```
 
 ### TODO
