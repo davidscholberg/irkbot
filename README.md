@@ -1,6 +1,6 @@
 ## Irkbot
 
-Irkbot is a modular IRC bot written in [Go](https://golang.org/) using the [go-ircevent](https://github.com/thoj/go-ircevent) library.
+Irkbot is a modular IRC bot written in [Go](https://golang.org/) using the [go-ircevent](https://github.com/thoj/go-ircevent) library. The main goal of this project is to create an IRC bot whose functionality can easily be extended through modules written in pure Go (see [Module development](#module-development)).
 
 ### Get
 
@@ -67,6 +67,14 @@ func ConfigEcho(cfg *lib.Config) {
 	// This function can be omitted if no configuration is needed.
 }
 
+func HelpEcho() []string {
+	// This function returns an array of strings describing this command's
+	// functionality. It is displayed when someone types "..help" in a channel
+	// or private message.
+	s := "..echo <phrase> - echo the phrase back to the channel"
+	return []string{s}
+}
+
 func Echo(p *lib.Privmsg) bool {
 	if ! strings.HasPrefix(p.Msg, "..echo") {
 		// If this is not an echo command, return right away.
@@ -86,16 +94,16 @@ func Echo(p *lib.Privmsg) bool {
 }
 ```
 
-The final step is to add the echo module functions to the modpm.RegisterMods function in `lib/modules/modpm/register.go`:
+The final step is to add the echo module functions to the module array in `lib/modules/modpm/register.go`:
 
 ```go
-	registerMod(&lib.Module{ConfigEcho, Echo})
+	&lib.Module{ConfigEcho, HelpEcho, Echo},
 ```
 
 If you omit the config function, the register function call would be:
 
 ```go
-	registerMod(&lib.Module{nil, Echo})
+	&lib.Module{nil, HelpEcho, Echo},
 ```
 
 ### TODO
