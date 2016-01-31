@@ -41,7 +41,9 @@ Once you've created the [configuration file](#configure), simply run the Irkbot 
 $GOPATH/bin/irkbot
 ```
 
-Until modules are properly documented, information about Irkbot's current modules can be gathered by looking at the modules' source in the `lib/modules` directory.
+Once Irkbot has connected, you can get a list of bot commands by typing `..help` in either a channel that Irkbot is in or a in a private message.
+
+More information about Irkbot's current modules can be gathered by looking at the modules' source in the `lib/modules` directory.
 
 ### Module development
 
@@ -100,7 +102,6 @@ If you omit the config function, the register function call would be:
 
 * Implement logging.
 * Allow config file to be passed in as an argument.
-* Implement a "help" module that displays the bot's commands.
 * Allow each module to specify a command prefix in the config.
 * Implement unit testing.
 * Make reddit module.

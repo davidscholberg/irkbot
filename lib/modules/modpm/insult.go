@@ -21,6 +21,12 @@ func ConfigInsult(cfg *lib.Config) {
 	}
 }
 
+func HelpInsult() []string {
+	s := "..insult [insultee] - insult the given insultee (or self if none" +
+		" given)"
+	return []string{s}
+}
+
 func Insult(p *lib.Privmsg) bool {
 	if !strings.HasPrefix(p.Msg, "..insult") {
 		return false

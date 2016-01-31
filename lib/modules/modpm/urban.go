@@ -7,6 +7,15 @@ import (
 	"strings"
 )
 
+func HelpUrban() []string {
+	s := []string{
+		"..urban [search phrase] - search urban dictionary for given phrase" +
+			" (or get random definition if none given)",
+		"..urban-wotd - get the urban dictionary word of the day",
+		"..urban-trending - get the current urban dictionary trending list"}
+	return s
+}
+
 func Urban(p *lib.Privmsg) bool {
 	if !strings.HasPrefix(p.Msg, "..urban") {
 		return false

@@ -25,6 +25,7 @@ type Config struct {
 
 type Module struct {
 	Configure func(*Config)
+	GetHelp   func() []string
 	Run       func(*Privmsg) bool
 }
 
