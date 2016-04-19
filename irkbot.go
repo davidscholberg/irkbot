@@ -30,8 +30,8 @@ func main() {
 		return
 	}
 
-	conn.VerboseCallbackHandler = true
-	conn.Debug = true
+	conn.VerboseCallbackHandler = cfg.Connection.Verbose_callback_handler
+	conn.Debug = cfg.Connection.Debug
 
 	conn.AddCallback("001", func(e *goirc.Event) {
 		conn.Join(cfg.Channel.Channelname)

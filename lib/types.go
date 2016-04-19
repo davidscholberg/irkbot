@@ -18,6 +18,10 @@ type Config struct {
 		Channelname string
 		Greeting    string
 	}
+	Connection struct {
+		Verbose_callback_handler bool
+		Debug                    bool
+	}
 	Module struct {
 		Insult_swearfile string
 	}

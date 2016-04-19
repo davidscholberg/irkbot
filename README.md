@@ -27,6 +27,10 @@ port = 6667
 channelname = "#mychannel"
 greeting = "Sup, folks"
 
+[connection]
+verbose-callback-handler = false
+debug = false
+
 [module]
 # This file is used by the "insult" module to pull bad words from.
 # The insult module will fail gracefully if this option is missing.
