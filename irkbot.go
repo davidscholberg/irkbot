@@ -7,23 +7,24 @@ import (
 	goirc "github.com/thoj/go-ircevent"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 )
 
 func main() {
+	errLogger := log.New(os.Stderr, "error: ", 0)
+
 	// get config
 	confPath := fmt.Sprintf("%s/.config/irkbot/irkbot.yml", os.Getenv("HOME"))
 	confStr, err := ioutil.ReadFile(confPath)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
+		errLogger.Fatalln(err)
 	}
 	cfg := lib.Config{}
 	err = yaml.Unmarshal(confStr, &cfg)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
+		errLogger.Fatalln(err)
 	}
 
 	conn := goirc.IRC(cfg.User.Nick, cfg.User.User)
@@ -32,8 +33,7 @@ func main() {
 		cfg.Server.Host,
 		cfg.Server.Port))
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
+		errLogger.Fatalln(err)
 	}
 
 	conn.VerboseCallbackHandler = cfg.Connection.VerboseCallbackHandler
