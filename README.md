@@ -16,12 +16,15 @@ Irkbot uses [YAML](http://yaml.org/) for its configuration. The config file path
 
 ```yaml
 user:
-    nick: irkbot
-    user: irkbot
+    nick: mybot
+    user: mybot
+    identify: True
+    password: mypassword
 
 server:
     host: irc.freenode.net
-    port: 6667
+    port: 7000
+    use_tls: True
 
 channel:
     channel_name: "#blahblah"

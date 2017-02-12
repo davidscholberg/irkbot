@@ -7,12 +7,15 @@ import (
 // TODO: give modules their own sections in config?
 type Config struct {
 	User struct {
-		Nick string `yaml:"nick"`
-		User string `yaml:"user"`
+		Nick     string `yaml:"nick"`
+		User     string `yaml:"user"`
+		Identify bool   `yaml:"identify"`
+		Password string `yaml:"password"`
 	} `yaml:"user"`
 	Server struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
+		Host   string `yaml:"host"`
+		Port   string `yaml:"port"`
+		UseTls bool   `yaml:"use_tls"`
 	} `yaml:"server"`
 	Channel struct {
 		ChannelName string `yaml:"channel_name"`

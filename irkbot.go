@@ -28,6 +28,7 @@ func main() {
 	}
 
 	conn := goirc.IRC(cfg.User.Nick, cfg.User.User)
+	conn.UseTLS = cfg.Server.UseTls
 	err = conn.Connect(fmt.Sprintf(
 		"%s:%s",
 		cfg.Server.Host,
@@ -40,6 +41,9 @@ func main() {
 	conn.Debug = cfg.Connection.Debug
 
 	conn.AddCallback("001", func(e *goirc.Event) {
+		if cfg.User.Identify && conn.GetNick() == cfg.User.Nick {
+			conn.Privmsgf("NickServ", "identify %s", cfg.User.Password)
+		}
 		conn.Join(cfg.Channel.ChannelName)
 	})
 
