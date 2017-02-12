@@ -1,7 +1,10 @@
-package lib
+package configure
 
 import (
-	goirc "github.com/thoj/go-ircevent"
+	"fmt"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
 )
 
 // TODO: give modules their own sections in config?
@@ -30,23 +33,17 @@ type Config struct {
 	} `yaml:"module"`
 }
 
-type Module struct {
-	Configure func(*Config)
-	GetHelp   func() []string
-	Run       func(*Privmsg) bool
-}
+const confPathFmt = "%s/.config/irkbot/irkbot.yml"
 
-type Privmsg struct {
-	Msg     string
-	MsgArgs []string
-	Dest    string
-	Event   *goirc.Event
-	Conn    *goirc.Connection
-	SayChan chan SayMsg
-}
-
-type SayMsg struct {
-	Conn *goirc.Connection
-	Dest string
-	Msg  string
+func LoadConfig(cfg *Config) error {
+	confPath := fmt.Sprintf(confPathFmt, os.Getenv("HOME"))
+	confStr, err := ioutil.ReadFile(confPath)
+	if err != nil {
+		return err
+	}
+	err = yaml.Unmarshal(confStr, cfg)
+	if err != nil {
+		return err
+	}
+	return nil
 }

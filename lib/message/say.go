@@ -1,8 +1,24 @@
-package lib
+package message
 
 import (
+	"github.com/thoj/go-ircevent"
 	"time"
 )
+
+type Privmsg struct {
+	Msg     string
+	MsgArgs []string
+	Dest    string
+	Event   *irc.Event
+	Conn    *irc.Connection
+	SayChan chan SayMsg
+}
+
+type SayMsg struct {
+	Conn *irc.Connection
+	Dest string
+	Msg  string
+}
 
 func Say(p *Privmsg, msg string) {
 	p.SayChan <- SayMsg{p.Conn, p.Dest, msg}

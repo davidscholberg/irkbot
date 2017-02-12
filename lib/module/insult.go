@@ -1,8 +1,9 @@
-package modpm
+package module
 
 import (
 	"fmt"
-	"github.com/davidscholberg/irkbot/lib"
+	"github.com/davidscholberg/irkbot/lib/configure"
+	"github.com/davidscholberg/irkbot/lib/message"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -11,7 +12,7 @@ import (
 
 var swears []string
 
-func ConfigInsult(cfg *lib.Config) {
+func ConfigInsult(cfg *configure.Config) {
 	// initialize swear array
 	swearBytes, err := ioutil.ReadFile(cfg.Module.InsultSwearfile)
 	if err == nil {
@@ -27,13 +28,13 @@ func HelpInsult() []string {
 	return []string{s}
 }
 
-func Insult(p *lib.Privmsg) bool {
+func Insult(p *message.Privmsg) bool {
 	if !strings.HasPrefix(p.Msg, "..insult") {
 		return false
 	}
 
 	if len(swears) == 0 {
-		lib.Say(p, "error: no swears")
+		message.Say(p, "error: no swears")
 		return true
 	}
 
@@ -48,6 +49,6 @@ func Insult(p *lib.Privmsg) bool {
 		swears[rand.Intn(len(swears))],
 		swears[rand.Intn(len(swears))])
 
-	lib.Say(p, response)
+	message.Say(p, response)
 	return true
 }

@@ -58,17 +58,19 @@ Irkbot has a simple system for creating modules that extend the bot's functional
 
 Below is an example PRIVMSG module that adds an echo command to the bot. The echo module looks for a PRIVMSG beginning with "..echo" and sends a PRIVMSG back echoing the rest of the line.
 
-This module file belongs in the `lib/modules/modpm/` directory.
+This module file belongs in the `lib/module/` directory.
 
 ```go
-// modpm is the package for all PRIVMSG modules
-package modpm
+// module is the package for all irkbot modules
+package module
 
 import (
-	"github.com/davidscholberg/irkbot/lib"
+	"github.com/davidscholberg/irkbot/lib/configure"
+	"github.com/davidscholberg/irkbot/lib/message"
+	"strings"
 )
 
-func ConfigEcho(cfg *lib.Config) {
+func ConfigEcho(cfg *configure.Config) {
 	// This is an optional function to configure the module. It is called only
 	// once when irkbot starts up.
 	// This function can be omitted if no configuration is needed.
@@ -82,7 +84,7 @@ func HelpEcho() []string {
 	return []string{s}
 }
 
-func Echo(p *lib.Privmsg) bool {
+func Echo(p *message.Privmsg) bool {
 	if ! strings.HasPrefix(p.Msg, "..echo") {
 		// If this is not an echo command, return right away.
 		// Returning false means that the next module in line will be called.
@@ -93,7 +95,7 @@ func Echo(p *lib.Privmsg) bool {
 	msg := strings.Join(p.MsgArgs[1:], " ")
 
 	// Call the Say function (which does message rate-limiting)
-	lib.Say(p, msg)
+	message.Say(p, msg)
 
 	// Returning true causes this module to "consume" this PRIVMSG such that no
 	// modules after this one will be called for this PRIVMSG.
@@ -101,16 +103,16 @@ func Echo(p *lib.Privmsg) bool {
 }
 ```
 
-The final step is to add the echo module functions to the module array in `lib/modules/modpm/register.go`:
+The final step is to add the echo module functions to the module array in `lib/module/register.go`:
 
 ```go
-	&lib.Module{ConfigEcho, HelpEcho, Echo},
+	&Module{ConfigEcho, HelpEcho, Echo},
 ```
 
 If you omit the config function, the register function call would be:
 
 ```go
-	&lib.Module{nil, HelpEcho, Echo},
+	&Module{nil, HelpEcho, Echo},
 ```
 
 ### TODO

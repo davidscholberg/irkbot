@@ -1,9 +1,9 @@
-package modpm
+package module
 
 import (
 	"fmt"
-	urbandict "github.com/davidscholberg/go-urbandict"
-	"github.com/davidscholberg/irkbot/lib"
+	"github.com/davidscholberg/go-urbandict"
+	"github.com/davidscholberg/irkbot/lib/message"
 	"strings"
 )
 
@@ -16,7 +16,7 @@ func HelpUrban() []string {
 	return s
 }
 
-func Urban(p *lib.Privmsg) bool {
+func Urban(p *message.Privmsg) bool {
 	if !strings.HasPrefix(p.Msg, "..urban") {
 		return false
 	}
@@ -30,7 +30,7 @@ func Urban(p *lib.Privmsg) bool {
 	return true
 }
 
-func showDefinition(p *lib.Privmsg) {
+func showDefinition(p *message.Privmsg) {
 	var def *urbandict.Definition
 	var err error
 	nick := p.Event.Nick
@@ -43,42 +43,42 @@ func showDefinition(p *lib.Privmsg) {
 		def, err = urbandict.Define(strings.Join(p.MsgArgs[1:], " "))
 	}
 	if err != nil {
-		lib.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
+		message.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
 		return
 	}
 
 	// TODO: implement max message length handling
 
 	if isWotd {
-		lib.Say(p, fmt.Sprintf("%s: Word of the day: \"%s\"", nick, def.Word))
+		message.Say(p, fmt.Sprintf("%s: Word of the day: \"%s\"", nick, def.Word))
 	} else {
-		lib.Say(p, fmt.Sprintf("%s: Top definition for \"%s\"", nick, def.Word))
+		message.Say(p, fmt.Sprintf("%s: Top definition for \"%s\"", nick, def.Word))
 	}
 	for _, line := range strings.Split(def.Definition, "\r\n") {
-		lib.Say(p, fmt.Sprintf("%s: %s", nick, line))
+		message.Say(p, fmt.Sprintf("%s: %s", nick, line))
 	}
-	lib.Say(p, fmt.Sprintf("%s: Example:", nick))
+	message.Say(p, fmt.Sprintf("%s: Example:", nick))
 	for _, line := range strings.Split(def.Example, "\r\n") {
-		lib.Say(p, fmt.Sprintf("%s: %s", nick, line))
+		message.Say(p, fmt.Sprintf("%s: %s", nick, line))
 	}
-	lib.Say(p, fmt.Sprintf("%s: permalink: %s", nick, def.Permalink))
+	message.Say(p, fmt.Sprintf("%s: permalink: %s", nick, def.Permalink))
 }
 
-func showTrending(p *lib.Privmsg) {
+func showTrending(p *message.Privmsg) {
 	nick := p.Event.Nick
 
 	trendingWords, err := urbandict.Trending()
 	if err != nil {
-		lib.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
+		message.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
 		return
 	}
 
-	lib.Say(p, fmt.Sprintf("%s: Top %d trending words:",
+	message.Say(p, fmt.Sprintf("%s: Top %d trending words:",
 		nick,
 		len(trendingWords)))
 
 	for i, word := range trendingWords {
-		lib.Say(p, fmt.Sprintf("%s: %d. %s", nick, i+1, word))
+		message.Say(p, fmt.Sprintf("%s: %d. %s", nick, i+1, word))
 	}
 
 	return

@@ -1,8 +1,8 @@
-package modpm
+package module
 
 import (
 	"fmt"
-	"github.com/davidscholberg/irkbot/lib"
+	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/mvdan/xurls"
 	"golang.org/x/net/html"
 	"net"
@@ -12,7 +12,7 @@ import (
 )
 
 // Url attempts to fetch the title of the HTML document returned by a URL
-func Url(p *lib.Privmsg) bool {
+func Url(p *message.Privmsg) bool {
 	urls := xurls.Strict.FindAllString(p.Msg, -1)
 
 	for _, urlStr := range urls {
@@ -31,7 +31,7 @@ func Url(p *lib.Privmsg) bool {
 		title = strings.Replace(title, "\n", "", -1)
 		title = strings.Replace(title, "\r", "", -1)
 		title = strings.TrimSpace(title)
-		lib.Say(p, fmt.Sprintf("^ %s - [%s]", title, host))
+		message.Say(p, fmt.Sprintf("^ %s - [%s]", title, host))
 	}
 
 	// don't consume the message, in case there are commands in it

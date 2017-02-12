@@ -1,8 +1,8 @@
-package modpm
+package module
 
 import (
 	"fmt"
-	"github.com/davidscholberg/irkbot/lib"
+	"github.com/davidscholberg/irkbot/lib/message"
 	"strings"
 )
 
@@ -14,17 +14,17 @@ func RegisterHelp(s []string) {
 }
 
 // Help displays help for all bot commands.
-func Help(p *lib.Privmsg) bool {
+func Help(p *message.Privmsg) bool {
 	if !strings.HasPrefix(p.Msg, "..help") {
 		return false
 	}
 
 	nick := p.Event.Nick
 
-	lib.Say(p, fmt.Sprintf("%s: List of commands:", nick))
+	message.Say(p, fmt.Sprintf("%s: List of commands:", nick))
 
 	for _, s := range helpMsgs {
-		lib.Say(p, fmt.Sprintf("%s: %s", nick, s))
+		message.Say(p, fmt.Sprintf("%s: %s", nick, s))
 	}
 
 	return true
