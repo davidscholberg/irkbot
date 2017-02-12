@@ -7,24 +7,24 @@ import (
 // TODO: give modules their own sections in config?
 type Config struct {
 	User struct {
-		Nick string
-		User string
-	}
+		Nick string `yaml:"nick"`
+		User string `yaml:"user"`
+	} `yaml:"user"`
 	Server struct {
-		Host string
-		Port string
-	}
+		Host string `yaml:"host"`
+		Port string `yaml:"port"`
+	} `yaml:"server"`
 	Channel struct {
-		Channelname string
-		Greeting    string
-	}
+		ChannelName string `yaml:"channel_name"`
+		Greeting    string `yaml:"greeting"`
+	} `yaml:"channel"`
 	Connection struct {
-		Verbose_callback_handler bool
-		Debug                    bool
-	}
+		VerboseCallbackHandler bool `yaml:"verbose_callback_handler"`
+		Debug                  bool `yaml:"debug"`
+	} `yaml:"connection"`
 	Module struct {
-		Insult_swearfile string
-	}
+		InsultSwearfile string `yaml:"insult_swearfile"`
+	} `yaml:"module"`
 }
 
 type Module struct {

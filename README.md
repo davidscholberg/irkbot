@@ -12,29 +12,29 @@ go get github.com/davidscholberg/irkbot
 
 ### Configure
 
-Irkbot uses an [INI](https://en.wikipedia.org/wiki/INI_file)-style configuration format. The config file path is expected to be `$HOME/.config/irkbot/irkbot.ini`. Below is a sample configuration file:
+Irkbot uses [YAML](http://yaml.org/) for its configuration. The config file path is expected to be `$HOME/.config/irkbot/irkbot.yml`. Below is a sample configuration file:
 
-```ini
-[user]
-nick = mynick
-user = mynick
+```yaml
+user:
+    nick: irkbot
+    user: irkbot
 
-[server]
-host = irc.freenode.net
-port = 6667
+server:
+    host: irc.freenode.net
+    port: 6667
 
-[channel]
-channelname = "#mychannel"
-greeting = "Sup, folks"
+channel:
+    channel_name: "#blahblah"
+    greeting: "oh hai"
 
-[connection]
-verbose-callback-handler = false
-debug = false
+connection:
+    verbose_callback_handler: False
+    debug: False
 
-[module]
+module:
 # This file is used by the "insult" module to pull bad words from.
 # The insult module will fail gracefully if this option is missing.
-insult-swearfile = "/path/to/badwords.txt"
+    insult_swearfile: /home/david/.config/irkbot/badwords.txt
 ```
 
 ### Usage

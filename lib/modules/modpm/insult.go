@@ -13,7 +13,7 @@ var swears []string
 
 func ConfigInsult(cfg *lib.Config) {
 	// initialize swear array
-	swearBytes, err := ioutil.ReadFile(cfg.Module.Insult_swearfile)
+	swearBytes, err := ioutil.ReadFile(cfg.Module.InsultSwearfile)
 	if err == nil {
 		swears = strings.Split(string(swearBytes), "\n")
 	} else {

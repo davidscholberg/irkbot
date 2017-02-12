@@ -5,16 +5,22 @@ import (
 	"github.com/davidscholberg/irkbot/lib"
 	"github.com/davidscholberg/irkbot/lib/modules/modpm"
 	goirc "github.com/thoj/go-ircevent"
-	gcfg "gopkg.in/gcfg.v1"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os"
 	"strings"
 )
 
 func main() {
 	// get config
-	confPath := fmt.Sprintf("%s/.config/irkbot/irkbot.ini", os.Getenv("HOME"))
+	confPath := fmt.Sprintf("%s/.config/irkbot/irkbot.yml", os.Getenv("HOME"))
+	confStr, err := ioutil.ReadFile(confPath)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
 	cfg := lib.Config{}
-	err := gcfg.ReadFileInto(&cfg, confPath)
+	err = yaml.Unmarshal(confStr, &cfg)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -30,11 +36,11 @@ func main() {
 		return
 	}
 
-	conn.VerboseCallbackHandler = cfg.Connection.Verbose_callback_handler
+	conn.VerboseCallbackHandler = cfg.Connection.VerboseCallbackHandler
 	conn.Debug = cfg.Connection.Debug
 
 	conn.AddCallback("001", func(e *goirc.Event) {
-		conn.Join(cfg.Channel.Channelname)
+		conn.Join(cfg.Channel.ChannelName)
 	})
 
 	conn.AddCallback("366", func(e *goirc.Event) {
