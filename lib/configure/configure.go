@@ -23,14 +23,13 @@ type Config struct {
 	Channel struct {
 		ChannelName string `yaml:"channel_name"`
 		Greeting    string `yaml:"greeting"`
+		CmdPrefix   string `yaml:"cmd_prefix"`
 	} `yaml:"channel"`
 	Connection struct {
 		VerboseCallbackHandler bool `yaml:"verbose_callback_handler"`
 		Debug                  bool `yaml:"debug"`
 	} `yaml:"connection"`
-	Module struct {
-		InsultSwearfile string `yaml:"insult_swearfile"`
-	} `yaml:"module"`
+	Modules map[string]map[string]string `yaml:"modules"`
 }
 
 const confPathFmt = "%s/.config/irkbot/irkbot.yml"

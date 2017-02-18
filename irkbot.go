@@ -18,7 +18,10 @@ func main() {
 		errLogger.Fatalln(err)
 	}
 
-	conn := connection.GetIrcConn(&cfg)
+	conn, err := connection.GetIrcConn(&cfg)
+	if err != nil {
+		errLogger.Fatalln(err)
+	}
 
 	err = conn.Connect(fmt.Sprintf(
 		"%s:%s",

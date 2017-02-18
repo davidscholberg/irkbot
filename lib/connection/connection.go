@@ -7,7 +7,7 @@ import (
 	"github.com/thoj/go-ircevent"
 )
 
-func GetIrcConn(cfg *configure.Config) *irc.Connection {
+func GetIrcConn(cfg *configure.Config) (*irc.Connection, error) {
 	conn := irc.IRC(cfg.User.Nick, cfg.User.User)
 	conn.UseTLS = cfg.Server.UseTls
 	conn.VerboseCallbackHandler = cfg.Connection.VerboseCallbackHandler
@@ -31,7 +31,10 @@ func GetIrcConn(cfg *configure.Config) *irc.Connection {
 	sayChan := make(chan message.SayMsg)
 	go message.SayLoop(sayChan)
 
-	module.RegisterModules(conn, cfg, sayChan)
+	err := module.RegisterModules(conn, cfg, sayChan)
+	if err != nil {
+		return conn, err
+	}
 
-	return conn
+	return conn, nil
 }

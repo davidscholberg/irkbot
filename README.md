@@ -29,15 +29,26 @@ server:
 channel:
     channel_name: "#blahblah"
     greeting: "oh hai"
+    cmd_prefix: "!"
 
 connection:
     verbose_callback_handler: False
     debug: False
 
-module:
-# This file is used by the "insult" module to pull bad words from.
-# The insult module will fail gracefully if this option is missing.
-    insult_swearfile: /home/david/.config/irkbot/badwords.txt
+# This is a list of modules that irkbot supports. If you omit any of these, they
+# will not be loaded at runtime.
+modules:
+    echo_name:
+    help:
+    insult:
+        # This file is used by the "insult" module to pull bad words from.
+        # The insult module will fail gracefully if this option is missing.
+        insult_swearfile: /home/david/.config/irkbot/badwords.txt
+    quit:
+    urban:
+    urban_wotd:
+    urban_trending:
+    url:
 ```
 
 ### Usage
@@ -56,7 +67,7 @@ More information about Irkbot's current modules can be gathered by looking at th
 
 Irkbot has a simple system for creating modules that extend the bot's functionality. Currently, the only modules that Irkbot manages are for PRIVMSG actions, but there are plans to make modules for other events, such as time-based events.
 
-Below is an example PRIVMSG module that adds an echo command to the bot. The echo module looks for a PRIVMSG beginning with "..echo" and sends a PRIVMSG back echoing the rest of the line.
+Below is an example PRIVMSG module that adds an echo command to the bot. The echo module runs when a PRIVMSG contains the echo command and sends a PRIVMSG back echoing the rest of the line.
 
 This module file belongs in the `lib/module/` directory.
 
@@ -78,42 +89,36 @@ func ConfigEcho(cfg *configure.Config) {
 
 func HelpEcho() []string {
 	// This function returns an array of strings describing this command's
-	// functionality. It is displayed when someone types "..help" in a channel
-	// or private message.
-	s := "..echo <phrase> - echo the phrase back to the channel"
+	// functionality. It is displayed when someone gives the help command in a
+	// channel or private message.
+	s := "echo <phrase> - echo the phrase back to the channel"
 	return []string{s}
 }
 
-func Echo(p *message.Privmsg) bool {
-	if ! strings.HasPrefix(p.Msg, "..echo") {
-		// If this is not an echo command, return right away.
-		// Returning false means that the next module in line will be called.
-		return false
-	}
-
+func Echo(p *message.Privmsg) {
 	// Grab the rest of the message.
 	msg := strings.Join(p.MsgArgs[1:], " ")
 
 	// Call the Say function (which does message rate-limiting)
 	message.Say(p, msg)
-
-	// Returning true causes this module to "consume" this PRIVMSG such that no
-	// modules after this one will be called for this PRIVMSG.
-	return true
 }
 ```
 
-The final step is to add the echo module functions to the module array in `lib/module/register.go`:
+The final step is to add the echo module functions to the switch statement in the RegisterModules function in `lib/module/register.go`:
 
 ```go
-	&Module{ConfigEcho, HelpEcho, Echo},
+		case "echo":
+			cmdMap["echo"] = &CommandModule{ConfigEcho, HelpEcho, Echo}
 ```
 
 If you omit the config function, the register function call would be:
 
 ```go
-	&Module{nil, HelpEcho, Echo},
+		case "echo":
+			cmdMap["echo"] = &CommandModule{nil, HelpEcho, Echo}
 ```
+
+To enable the module, you'll need to add it to the `modules` section of the Irkbot configuration file.
 
 ### TODO
 

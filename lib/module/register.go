@@ -1,29 +1,62 @@
 package module
 
 import (
+	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/thoj/go-ircevent"
 	"strings"
 )
 
-type Module struct {
+type CommandModule struct {
+	Configure func(*configure.Config)
+	GetHelp   func() []string
+	Run       func(*message.Privmsg)
+}
+
+type ParserModule struct {
 	Configure func(*configure.Config)
 	GetHelp   func() []string
 	Run       func(*message.Privmsg) bool
 }
 
-var modules []*Module = []*Module{
-	&Module{nil, nil, Help},
-	&Module{nil, nil, Url},
-	&Module{ConfigEchoName, nil, EchoName},
-	&Module{ConfigInsult, HelpInsult, Insult},
-	&Module{nil, nil, Quit},
-	&Module{nil, HelpUrban, Urban}}
-
-func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan message.SayMsg) {
+func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan message.SayMsg) error {
 	// register modules
-	for _, m := range modules {
+	parserModules := []*ParserModule{}
+	cmdMap := make(map[string]*CommandModule)
+	for moduleName, _ := range cfg.Modules {
+		switch moduleName {
+		case "echo_name":
+			parserModules = append(parserModules, &ParserModule{ConfigEchoName, nil, EchoName})
+		case "help":
+			cmdMap["help"] = &CommandModule{ConfigHelp, nil, Help}
+		case "insult":
+			cmdMap["insult"] = &CommandModule{ConfigInsult, HelpInsult, Insult}
+		case "quit":
+			cmdMap["quit"] = &CommandModule{nil, nil, Quit}
+		case "urban":
+			cmdMap["urban"] = &CommandModule{nil, HelpUrban, Urban}
+		case "urban_wotd":
+			cmdMap["urban_wotd"] = &CommandModule{nil, HelpUrbanWotd, UrbanWotd}
+		case "urban_trending":
+			cmdMap["urban_trending"] = &CommandModule{nil, HelpUrbanTrending, UrbanTrending}
+		case "url":
+			parserModules = append(parserModules, &ParserModule{nil, nil, Url})
+		default:
+			return fmt.Errorf("invalid name '%s' in module config", moduleName)
+		}
+	}
+
+	for _, m := range cmdMap {
+		if m.GetHelp != nil {
+			RegisterHelp(m.GetHelp())
+		}
+		if m.Configure != nil {
+			m.Configure(cfg)
+		}
+	}
+
+	for _, m := range parserModules {
 		if m.GetHelp != nil {
 			RegisterHelp(m.GetHelp())
 		}
@@ -44,11 +77,23 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan m
 		p.Conn = conn
 		p.SayChan = sayChan
 
-		for _, m := range modules {
+		// run parser modules
+		for _, m := range parserModules {
 			if m.Run(&p) {
-				break
+				return
 			}
 		}
+
+		// check commands
+		cmdPrefix := cfg.Channel.CmdPrefix
+		if cmdPrefix == "" {
+			cmdPrefix = "."
+		}
+		if m, ok := cmdMap[strings.TrimPrefix(p.MsgArgs[0], cmdPrefix)]; ok {
+			m.Run(&p)
+		}
+
 	})
 
+	return nil
 }

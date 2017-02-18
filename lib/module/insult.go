@@ -14,7 +14,7 @@ var swears []string
 
 func ConfigInsult(cfg *configure.Config) {
 	// initialize swear array
-	swearBytes, err := ioutil.ReadFile(cfg.Module.InsultSwearfile)
+	swearBytes, err := ioutil.ReadFile(cfg.Modules["insult"]["insult_swearfile"])
 	if err == nil {
 		swears = strings.Split(string(swearBytes), "\n")
 	} else {
@@ -23,19 +23,15 @@ func ConfigInsult(cfg *configure.Config) {
 }
 
 func HelpInsult() []string {
-	s := "..insult [insultee] - insult the given insultee (or self if none" +
+	s := "insult [insultee] - insult the given insultee (or self if none" +
 		" given)"
 	return []string{s}
 }
 
-func Insult(p *message.Privmsg) bool {
-	if !strings.HasPrefix(p.Msg, "..insult") {
-		return false
-	}
-
+func Insult(p *message.Privmsg) {
 	if len(swears) == 0 {
 		message.Say(p, "error: no swears")
-		return true
+		return
 	}
 
 	insultee := p.Event.Nick
@@ -50,5 +46,4 @@ func Insult(p *message.Privmsg) bool {
 		swears[rand.Intn(len(swears))])
 
 	message.Say(p, response)
-	return true
 }

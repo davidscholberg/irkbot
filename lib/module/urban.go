@@ -9,32 +9,42 @@ import (
 
 func HelpUrban() []string {
 	s := []string{
-		"..urban [search phrase] - search urban dictionary for given phrase" +
+		"urban [search phrase] - search urban dictionary for given phrase" +
 			" (or get random definition if none given)",
-		"..urban-wotd - get the urban dictionary word of the day",
-		"..urban-trending - get the current urban dictionary trending list"}
+	}
 	return s
 }
 
-func Urban(p *message.Privmsg) bool {
-	if !strings.HasPrefix(p.Msg, "..urban") {
-		return false
+func HelpUrbanWotd() []string {
+	s := []string{
+		"urban_wotd - get the urban dictionary word of the day",
 	}
-
-	if strings.HasPrefix(p.Msg, "..urban-trending") {
-		showTrending(p)
-	} else {
-		showDefinition(p)
-	}
-
-	return true
+	return s
 }
 
-func showDefinition(p *message.Privmsg) {
+func HelpUrbanTrending() []string {
+	s := []string{
+		"urban_trending - get the current urban dictionary trending list",
+	}
+	return s
+}
+
+func Urban(p *message.Privmsg) {
+	showDefinition(p, false)
+}
+
+func UrbanWotd(p *message.Privmsg) {
+	showDefinition(p, true)
+}
+
+func UrbanTrending(p *message.Privmsg) {
+	showTrending(p)
+}
+
+func showDefinition(p *message.Privmsg, isWotd bool) {
 	var def *urbandict.Definition
 	var err error
 	nick := p.Event.Nick
-	isWotd := strings.HasPrefix(p.Msg, "..urban-wotd")
 	if isWotd {
 		def, err = urbandict.WordOfTheDay()
 	} else if len(p.MsgArgs) == 1 {
