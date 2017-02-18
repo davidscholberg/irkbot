@@ -33,7 +33,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan m
 		case "insult":
 			cmdMap["insult"] = &CommandModule{ConfigInsult, HelpInsult, Insult}
 		case "quit":
-			cmdMap["quit"] = &CommandModule{nil, nil, Quit}
+			cmdMap["quit"] = &CommandModule{ConfigQuit, HelpQuit, Quit}
 		case "urban":
 			cmdMap["urban"] = &CommandModule{nil, HelpUrban, Urban}
 		case "urban_wotd":

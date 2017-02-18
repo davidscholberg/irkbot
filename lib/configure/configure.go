@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-// TODO: give modules their own sections in config?
 type Config struct {
 	User struct {
 		Nick     string `yaml:"nick"`
@@ -29,6 +28,10 @@ type Config struct {
 		VerboseCallbackHandler bool `yaml:"verbose_callback_handler"`
 		Debug                  bool `yaml:"debug"`
 	} `yaml:"connection"`
+	Admin struct {
+		Owner       string `yaml:"owner"`
+		DenyMessage string `yaml:"deny_message"`
+	} `yaml:"admin"`
 	Modules map[string]map[string]string `yaml:"modules"`
 }
 
