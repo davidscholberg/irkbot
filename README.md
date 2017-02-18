@@ -35,6 +35,10 @@ connection:
     verbose_callback_handler: False
     debug: False
 
+admin:
+    owner: mynick
+    deny_message: yeah, i don't think so
+
 # This is a list of modules that irkbot supports. If you omit any of these, they
 # will not be loaded at runtime.
 modules:
