@@ -37,7 +37,7 @@ func Compliment(p *message.Privmsg) {
 
 	recipient := p.Event.Nick
 	if len(p.MsgArgs) > 1 {
-		recipient = strings.Join(p.MsgArgs[1:], " ")
+		recipient = strings.TrimSpace(strings.Join(p.MsgArgs[1:], " "))
 	}
 
 	response := fmt.Sprintf(

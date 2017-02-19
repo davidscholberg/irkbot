@@ -45,7 +45,7 @@ func Slam(p *message.Privmsg) {
 
 	victim := p.Event.Nick
 	if len(p.MsgArgs) > 1 {
-		victim = strings.Join(p.MsgArgs[1:], " ")
+		victim = strings.TrimSpace(strings.Join(p.MsgArgs[1:], " "))
 	}
 
 	response := fmt.Sprintf(
