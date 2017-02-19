@@ -44,10 +44,16 @@ admin:
 modules:
     echo_name:
     help:
-    insult:
-        # This file is used by the "insult" module to pull bad words from.
-        # The insult module will fail gracefully if this option is missing.
-        insult_swearfile: /home/david/.config/irkbot/badwords.txt
+    slam:
+        # These files are used by the "slam" module to pull verbal smackdowns
+        # from.
+        # The slam module will fail gracefully if these options are missing.
+        adjective_file: /home/david/.config/irkbot/slam-adjectives.txt
+        noun_file: /home/david/.config/irkbot/slam-nouns.txt
+    compliment:
+        # This file is used by the "compliment" module to pull compliments from.
+        # The compliment module will fail gracefully if this option is missing.
+        file: /home/david/.config/irkbot/compliments.txt
     quit:
     urban:
     urban_wotd:
