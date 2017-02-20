@@ -22,7 +22,9 @@ func RegisterHelp(s []string) {
 func Help(p *message.Privmsg) {
 	nick := p.Event.Nick
 
-	message.Say(p, fmt.Sprintf("%s: List of commands:", nick))
+	message.Say(p, fmt.Sprintf("%s: Hello! I am an Irkbot instance - "+
+		"https://github.com/davidscholberg/irkbot", nick))
+	message.Say(p, fmt.Sprintf("%s: Here's my list of commands:", nick))
 
 	for _, s := range helpMsgs {
 		message.Say(p, fmt.Sprintf("%s: %s%s", nick, cmdPrefix, s))
