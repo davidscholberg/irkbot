@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 var adjectives []string
@@ -29,6 +30,9 @@ func ConfigSlam(cfg *configure.Config) {
 	}
 	adjectives = strings.Split(string(adjectiveBytes), "\n")
 	nouns = strings.Split(string(nounBytes), "\n")
+
+	// seed rng
+	rand.Seed(time.Now().UnixNano())
 }
 
 func HelpSlam() []string {

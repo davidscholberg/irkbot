@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 var compliments []string
@@ -21,6 +22,9 @@ func ConfigCompliment(cfg *configure.Config) {
 		return
 	}
 	compliments = strings.Split(string(complimentBytes), "\n")
+
+	// seed rng
+	rand.Seed(time.Now().UnixNano())
 }
 
 func HelpCompliment() []string {
