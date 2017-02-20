@@ -10,7 +10,7 @@ import (
 func HelpUrban() []string {
 	s := []string{
 		"urban [search phrase] - search urban dictionary for given phrase" +
-			" (or get random definition if none given)",
+			" (or get random word if none given)",
 	}
 	return s
 }
@@ -30,7 +30,7 @@ func HelpUrbanTrending() []string {
 }
 
 func Urban(p *message.Privmsg) {
-	showDefinition(p, false)
+	showSearchResult(p)
 }
 
 func UrbanWotd(p *message.Privmsg) {
@@ -39,6 +39,30 @@ func UrbanWotd(p *message.Privmsg) {
 
 func UrbanTrending(p *message.Privmsg) {
 	showTrending(p)
+}
+
+func showSearchResult(p *message.Privmsg) {
+	var def *urbandict.Definition
+	var err error
+	var isRandom bool
+	nick := p.Event.Nick
+	if len(p.MsgArgs) == 1 {
+		def, err = urbandict.Random()
+		isRandom = true
+	} else {
+		def, err = urbandict.Define(strings.Join(p.MsgArgs[1:], " "))
+		isRandom = false
+	}
+	if err != nil {
+		message.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
+		return
+	}
+
+	if isRandom {
+		message.Say(p, fmt.Sprintf("%s: random word: \"%s\" - %s", nick, def.Word, def.Permalink))
+	} else {
+		message.Say(p, fmt.Sprintf("%s: top result for \"%s\" - %s", nick, def.Word, def.Permalink))
+	}
 }
 
 func showDefinition(p *message.Privmsg, isWotd bool) {
