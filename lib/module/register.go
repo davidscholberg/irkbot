@@ -91,8 +91,10 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan m
 		if cmdPrefix == "" {
 			cmdPrefix = "."
 		}
-		if m, ok := cmdMap[strings.TrimPrefix(p.MsgArgs[0], cmdPrefix)]; ok {
-			m.Run(&p)
+		if strings.HasPrefix(p.Msg, cmdPrefix) {
+			if m, ok := cmdMap[strings.TrimPrefix(p.MsgArgs[0], cmdPrefix)]; ok {
+				m.Run(&p)
+			}
 		}
 
 	})
