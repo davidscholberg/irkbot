@@ -74,7 +74,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan m
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
 		p := message.Privmsg{}
 		p.Msg = e.Message()
-		p.MsgArgs = strings.Split(p.Msg, " ")
+		p.MsgArgs = strings.Fields(p.Msg)
 		p.Dest = e.Arguments[0]
 		if !strings.HasPrefix(p.Dest, "#") {
 			p.Dest = e.Nick
