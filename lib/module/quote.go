@@ -43,6 +43,11 @@ func ConfigQuote(cfg *configure.Config) {
 }
 
 func UpdateQuoteBuffer(p *message.Privmsg) bool {
+	// don't update quote buffer in PMs
+	if !strings.HasPrefix(p.Dest, "#") {
+		return false
+	}
+
 	db, err := gorm.Open("sqlite3", dbFile)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -63,6 +68,18 @@ func HelpGrabQuote() []string {
 }
 
 func GrabQuote(p *message.Privmsg) {
+	// don't allow quote grabs in PMs
+	if !strings.HasPrefix(p.Dest, "#") {
+		message.Say(
+			p,
+			fmt.Sprintf(
+				"%s: you can't grab a quote in a PM, doofus",
+				p.Event.Nick,
+			),
+		)
+		return
+	}
+
 	if len(p.MsgArgs) < 2 {
 		message.Say(
 			p,
