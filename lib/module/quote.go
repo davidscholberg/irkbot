@@ -6,6 +6,7 @@ import (
 	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -111,6 +112,58 @@ func GrabQuote(p *message.Privmsg) {
 	db.Create(&Quote{Nick: q.Nick, Text: q.Text, Date: q.Date})
 	db.Delete(&q)
 	message.Say(p, fmt.Sprintf("%s: grabbed", p.Event.Nick))
+
+	return
+}
+
+func HelpGetQuote() []string {
+	s := "quote <nick> - get a random quote of <nick> from the quotes database"
+	return []string{s}
+}
+
+func GetQuote(p *message.Privmsg) {
+	if len(p.MsgArgs) < 2 {
+		message.Say(
+			p,
+			fmt.Sprintf(
+				"%s: you need to specify a nick, dingus",
+				p.Event.Nick,
+			),
+		)
+		return
+	}
+
+	db, err := gorm.Open("sqlite3", dbFile)
+	if err != nil {
+		message.Say(p, "couldn't open quotes database")
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	defer db.Close()
+
+	quotee := strings.TrimSpace(p.MsgArgs[1])
+
+	quotes := []Quote{}
+	db.Find(&quotes, Quote{Nick: quotee})
+	if len(quotes) == 0 {
+		message.Say(
+			p,
+			fmt.Sprintf(
+				"%s: no entries for %s",
+				p.Event.Nick,
+				quotee,
+			),
+		)
+		return
+	}
+
+	quote := quotes[rand.Intn(len(quotes))]
+	msg := fmt.Sprintf(
+		"<%s> %s",
+		quote.Nick,
+		quote.Text,
+	)
+	message.Say(p, msg)
 
 	return
 }
