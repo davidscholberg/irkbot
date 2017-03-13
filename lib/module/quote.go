@@ -7,19 +7,27 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"os"
+	"strings"
 	"time"
 )
 
 type QuoteBuffer struct {
-	gorm.Model
+	ID   uint   `gorm:"primary_key"`
 	Nick string `gorm:"unique_index:idx_quotes_nick"`
+	Text string
+	Date time.Time
+}
+
+type Quote struct {
+	ID   uint `gorm:"primary_key"`
+	Nick string
 	Text string
 	Date time.Time
 }
 
 var dbFile string
 
-func ConfigQuoteBuffer(cfg *configure.Config) {
+func ConfigQuote(cfg *configure.Config) {
 	dbFile = cfg.Modules["quote"]["db_file"]
 
 	db, err := gorm.Open("sqlite3", dbFile)
@@ -30,6 +38,7 @@ func ConfigQuoteBuffer(cfg *configure.Config) {
 	defer db.Close()
 
 	db.AutoMigrate(&QuoteBuffer{})
+	db.AutoMigrate(&Quote{})
 }
 
 func UpdateQuoteBuffer(p *message.Privmsg) bool {
@@ -45,4 +54,63 @@ func UpdateQuoteBuffer(p *message.Privmsg) bool {
 	db.Model(&q).Updates(QuoteBuffer{Text: p.Msg, Date: time.Now()})
 
 	return false
+}
+
+func HelpGrabQuote() []string {
+	s := "grab <nick> - store the last quote from <nick> in the quotes database"
+	return []string{s}
+}
+
+func GrabQuote(p *message.Privmsg) {
+	if len(p.MsgArgs) < 2 {
+		message.Say(
+			p,
+			fmt.Sprintf(
+				"%s: you need to specify a nick, dingus",
+				p.Event.Nick,
+			),
+		)
+		return
+	}
+
+	quotee := strings.TrimSpace(p.MsgArgs[1])
+
+	if p.Event.Nick == quotee {
+		message.Say(
+			p,
+			fmt.Sprintf(
+				"%s: you can't grab your own quotes, you narcissistic fool",
+				p.Event.Nick,
+			),
+		)
+		return
+	}
+
+	db, err := gorm.Open("sqlite3", dbFile)
+	if err != nil {
+		message.Say(p, "couldn't open quotes database")
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	defer db.Close()
+
+	q := QuoteBuffer{}
+	db.First(&q, QuoteBuffer{Nick: quotee})
+	if q.Nick == "" {
+		message.Say(
+			p,
+			fmt.Sprintf(
+				"%s: no entries for %s",
+				p.Event.Nick,
+				quotee,
+			),
+		)
+		return
+	}
+
+	db.Create(&Quote{Nick: q.Nick, Text: q.Text, Date: q.Date})
+	db.Delete(&q)
+	message.Say(p, fmt.Sprintf("%s: grabbed", p.Event.Nick))
+
+	return
 }

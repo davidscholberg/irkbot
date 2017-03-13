@@ -37,7 +37,8 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan m
 		case "quit":
 			cmdMap["quit"] = &CommandModule{ConfigQuit, HelpQuit, Quit}
 		case "quote":
-			parserModules = append(parserModules, &ParserModule{ConfigQuoteBuffer, nil, UpdateQuoteBuffer})
+			parserModules = append(parserModules, &ParserModule{ConfigQuote, nil, UpdateQuoteBuffer})
+			cmdMap["grab"] = &CommandModule{nil, HelpGrabQuote, GrabQuote}
 		case "urban":
 			cmdMap["urban"] = &CommandModule{nil, HelpUrban, Urban}
 		case "urban_wotd":
