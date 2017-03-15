@@ -55,6 +55,9 @@ modules:
         # The compliment module will fail gracefully if this option is missing.
         file: /home/david/.config/irkbot/compliments.txt
     quit:
+    quote:
+        # This is the location of the sqlite database used by the quotes module.
+        db_file: /home/david/var/irkbot/quotes.db
     urban:
     urban_wotd:
     urban_trending:
