@@ -113,7 +113,7 @@ func Echo(in *message.InboundMsg, actions *Actions) {
 	msg := strings.Join(in.MsgArgs[1:], " ")
 
 	// Call the Say function (which does message rate-limiting)
-	actions.Say(p, msg)
+	actions.Say(msg)
 }
 ```
 
