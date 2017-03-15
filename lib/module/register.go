@@ -21,8 +21,9 @@ type ParserModule struct {
 }
 
 type Actions struct {
-	Quit func()
-	Say  func(string)
+	Quit  func()
+	Say   func(string)
+	SayTo func(string, string)
 }
 
 func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan message.OutboundMsg) error {
@@ -45,6 +46,8 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			parserModules = append(parserModules, &ParserModule{ConfigQuote, nil, UpdateQuoteBuffer})
 			cmdMap["grab"] = &CommandModule{nil, HelpGrabQuote, GrabQuote}
 			cmdMap["quote"] = &CommandModule{nil, HelpGetQuote, GetQuote}
+		case "say":
+			cmdMap["say"] = &CommandModule{ConfigSay, HelpSay, Say}
 		case "urban":
 			cmdMap["urban"] = &CommandModule{nil, HelpUrban, Urban}
 		case "urban_wotd":
@@ -91,16 +94,22 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		outboundMsg.Conn = conn
 		//p.SayChan = sayChan
 
+		quitFunc := func() {
+			conn.Quit()
+		}
 		sayFunc := func(msg string) {
 			outboundMsg.Msg = msg
 			outChan <- outboundMsg
 		}
-		quitFunc := func() {
-			conn.Quit()
+		sayToFunc := func(dest string, msg string) {
+			outboundMsg.Dest = dest
+			outboundMsg.Msg = msg
+			outChan <- outboundMsg
 		}
 		actions := Actions{
-			Quit: quitFunc,
-			Say:  sayFunc,
+			Quit:  quitFunc,
+			Say:   sayFunc,
+			SayTo: sayToFunc,
 		}
 
 		// run parser modules

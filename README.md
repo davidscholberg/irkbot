@@ -58,6 +58,7 @@ modules:
     quote:
         # This is the location of the sqlite database used by the quotes module.
         db_file: /home/david/var/irkbot/quotes.db
+    say:
     urban:
     urban_wotd:
     urban_trending:
