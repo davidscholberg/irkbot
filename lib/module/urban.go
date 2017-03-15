@@ -29,90 +29,90 @@ func HelpUrbanTrending() []string {
 	return s
 }
 
-func Urban(p *message.Privmsg) {
-	showSearchResult(p)
+func Urban(in *message.InboundMsg, actions *Actions) {
+	showSearchResult(in, actions)
 }
 
-func UrbanWotd(p *message.Privmsg) {
-	showDefinition(p, true)
+func UrbanWotd(in *message.InboundMsg, actions *Actions) {
+	showDefinition(in, actions, true)
 }
 
-func UrbanTrending(p *message.Privmsg) {
-	showTrending(p)
+func UrbanTrending(in *message.InboundMsg, actions *Actions) {
+	showTrending(in, actions)
 }
 
-func showSearchResult(p *message.Privmsg) {
+func showSearchResult(in *message.InboundMsg, actions *Actions) {
 	var def *urbandict.Definition
 	var err error
 	var isRandom bool
-	nick := p.Event.Nick
-	if len(p.MsgArgs) == 1 {
+	nick := in.Event.Nick
+	if len(in.MsgArgs) == 1 {
 		def, err = urbandict.Random()
 		isRandom = true
 	} else {
-		def, err = urbandict.Define(strings.Join(p.MsgArgs[1:], " "))
+		def, err = urbandict.Define(strings.Join(in.MsgArgs[1:], " "))
 		isRandom = false
 	}
 	if err != nil {
-		message.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
+		actions.Say(fmt.Sprintf("%s: %s", nick, err.Error()))
 		return
 	}
 
 	if isRandom {
-		message.Say(p, fmt.Sprintf("%s: random word: \"%s\" - %s", nick, def.Word, def.Permalink))
+		actions.Say(fmt.Sprintf("%s: random word: \"%s\" - %s", nick, def.Word, def.Permalink))
 	} else {
-		message.Say(p, fmt.Sprintf("%s: top result for \"%s\" - %s", nick, def.Word, def.Permalink))
+		actions.Say(fmt.Sprintf("%s: top result for \"%s\" - %s", nick, def.Word, def.Permalink))
 	}
 }
 
-func showDefinition(p *message.Privmsg, isWotd bool) {
+func showDefinition(in *message.InboundMsg, actions *Actions, isWotd bool) {
 	var def *urbandict.Definition
 	var err error
-	nick := p.Event.Nick
+	nick := in.Event.Nick
 	if isWotd {
 		def, err = urbandict.WordOfTheDay()
-	} else if len(p.MsgArgs) == 1 {
+	} else if len(in.MsgArgs) == 1 {
 		def, err = urbandict.Random()
 	} else {
-		def, err = urbandict.Define(strings.Join(p.MsgArgs[1:], " "))
+		def, err = urbandict.Define(strings.Join(in.MsgArgs[1:], " "))
 	}
 	if err != nil {
-		message.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
+		actions.Say(fmt.Sprintf("%s: %s", nick, err.Error()))
 		return
 	}
 
 	// TODO: implement max message length handling
 
 	if isWotd {
-		message.Say(p, fmt.Sprintf("%s: Word of the day: \"%s\"", nick, def.Word))
+		actions.Say(fmt.Sprintf("%s: Word of the day: \"%s\"", nick, def.Word))
 	} else {
-		message.Say(p, fmt.Sprintf("%s: Top definition for \"%s\"", nick, def.Word))
+		actions.Say(fmt.Sprintf("%s: Top definition for \"%s\"", nick, def.Word))
 	}
 	for _, line := range strings.Split(def.Definition, "\r\n") {
-		message.Say(p, fmt.Sprintf("%s: %s", nick, line))
+		actions.Say(fmt.Sprintf("%s: %s", nick, line))
 	}
-	message.Say(p, fmt.Sprintf("%s: Example:", nick))
+	actions.Say(fmt.Sprintf("%s: Example:", nick))
 	for _, line := range strings.Split(def.Example, "\r\n") {
-		message.Say(p, fmt.Sprintf("%s: %s", nick, line))
+		actions.Say(fmt.Sprintf("%s: %s", nick, line))
 	}
-	message.Say(p, fmt.Sprintf("%s: permalink: %s", nick, def.Permalink))
+	actions.Say(fmt.Sprintf("%s: permalink: %s", nick, def.Permalink))
 }
 
-func showTrending(p *message.Privmsg) {
-	nick := p.Event.Nick
+func showTrending(in *message.InboundMsg, actions *Actions) {
+	nick := in.Event.Nick
 
 	trendingWords, err := urbandict.Trending()
 	if err != nil {
-		message.Say(p, fmt.Sprintf("%s: %s", nick, err.Error()))
+		actions.Say(fmt.Sprintf("%s: %s", nick, err.Error()))
 		return
 	}
 
-	message.Say(p, fmt.Sprintf("%s: Top %d trending words:",
+	actions.Say(fmt.Sprintf("%s: Top %d trending words:",
 		nick,
 		len(trendingWords)))
 
 	for i, word := range trendingWords {
-		message.Say(p, fmt.Sprintf("%s: %d. %s", nick, i+1, word))
+		actions.Say(fmt.Sprintf("%s: %d. %s", nick, i+1, word))
 	}
 
 	return

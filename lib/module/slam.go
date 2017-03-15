@@ -41,15 +41,15 @@ func HelpSlam() []string {
 	return []string{s}
 }
 
-func Slam(p *message.Privmsg) {
+func Slam(in *message.InboundMsg, actions *Actions) {
 	if len(adjectives) == 0 || len(nouns) == 0 {
-		message.Say(p, "error: no smackdowns loaded")
+		actions.Say("error: no smackdowns loaded")
 		return
 	}
 
-	victim := p.Event.Nick
-	if len(p.MsgArgs) > 1 {
-		victim = strings.TrimSpace(strings.Join(p.MsgArgs[1:], " "))
+	victim := in.Event.Nick
+	if len(in.MsgArgs) > 1 {
+		victim = strings.TrimSpace(strings.Join(in.MsgArgs[1:], " "))
 	}
 
 	response := fmt.Sprintf(
@@ -58,5 +58,5 @@ func Slam(p *message.Privmsg) {
 		adjectives[rand.Intn(len(adjectives))],
 		nouns[rand.Intn(len(nouns))])
 
-	message.Say(p, response)
+	actions.Say(response)
 }

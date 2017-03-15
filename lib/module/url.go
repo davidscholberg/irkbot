@@ -12,8 +12,8 @@ import (
 )
 
 // Url attempts to fetch the title of the HTML document returned by a URL
-func Url(p *message.Privmsg) bool {
-	urls := xurls.Strict.FindAllString(p.Msg, -1)
+func Url(in *message.InboundMsg, actions *Actions) bool {
+	urls := xurls.Strict.FindAllString(in.Msg, -1)
 
 	for _, urlStr := range urls {
 		url, err := urllib.Parse(urlStr)
@@ -31,7 +31,7 @@ func Url(p *message.Privmsg) bool {
 		title = strings.Replace(title, "\n", "", -1)
 		title = strings.Replace(title, "\r", "", -1)
 		title = strings.TrimSpace(title)
-		message.Say(p, fmt.Sprintf("^ %s - [%s]", title, host))
+		actions.Say(fmt.Sprintf("^ %s - [%s]", title, host))
 	}
 
 	// don't consume the message, in case there are commands in it

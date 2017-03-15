@@ -28,10 +28,10 @@ func GetIrcConn(cfg *configure.Config) (*irc.Connection, error) {
 
 	// TODO: start multiple sayLoops, one per conn
 	// TODO: pass conn to sayLoop instead of privmsg callbacks?
-	sayChan := make(chan message.SayMsg)
-	go message.SayLoop(sayChan)
+	outChan := make(chan message.OutboundMsg)
+	go message.SayLoop(outChan)
 
-	err := module.RegisterModules(conn, cfg, sayChan)
+	err := module.RegisterModules(conn, cfg, outChan)
 	if err != nil {
 		return conn, err
 	}
