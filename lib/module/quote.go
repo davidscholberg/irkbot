@@ -42,9 +42,9 @@ func ConfigQuote(cfg *configure.Config) {
 	db.AutoMigrate(&Quote{})
 }
 
-func UpdateQuoteBuffer(p *message.Privmsg) bool {
+func UpdateQuoteBuffer(in *message.InboundMsg, actions *Actions) bool {
 	// don't update quote buffer in PMs
-	if !strings.HasPrefix(p.Dest, "#") {
+	if !strings.HasPrefix(in.Src, "#") {
 		return false
 	}
 
@@ -56,8 +56,8 @@ func UpdateQuoteBuffer(p *message.Privmsg) bool {
 	defer db.Close()
 
 	q := QuoteBuffer{}
-	db.FirstOrCreate(&q, QuoteBuffer{Nick: p.Event.Nick})
-	db.Model(&q).Updates(QuoteBuffer{Text: p.Msg, Date: time.Now()})
+	db.FirstOrCreate(&q, QuoteBuffer{Nick: in.Event.Nick})
+	db.Model(&q).Updates(QuoteBuffer{Text: in.Msg, Date: time.Now()})
 
 	return false
 }
@@ -67,38 +67,35 @@ func HelpGrabQuote() []string {
 	return []string{s}
 }
 
-func GrabQuote(p *message.Privmsg) {
+func GrabQuote(in *message.InboundMsg, actions *Actions) {
 	// don't allow quote grabs in PMs
-	if !strings.HasPrefix(p.Dest, "#") {
-		message.Say(
-			p,
+	if !strings.HasPrefix(in.Src, "#") {
+		actions.Say(
 			fmt.Sprintf(
 				"%s: you can't grab a quote in a PM, doofus",
-				p.Event.Nick,
+				in.Event.Nick,
 			),
 		)
 		return
 	}
 
-	if len(p.MsgArgs) < 2 {
-		message.Say(
-			p,
+	if len(in.MsgArgs) < 2 {
+		actions.Say(
 			fmt.Sprintf(
 				"%s: you need to specify a nick, dingus",
-				p.Event.Nick,
+				in.Event.Nick,
 			),
 		)
 		return
 	}
 
-	quotee := strings.TrimSpace(p.MsgArgs[1])
+	quotee := strings.TrimSpace(in.MsgArgs[1])
 
-	if p.Event.Nick == quotee {
-		message.Say(
-			p,
+	if in.Event.Nick == quotee {
+		actions.Say(
 			fmt.Sprintf(
 				"%s: you can't grab your own quotes, you narcissistic fool",
-				p.Event.Nick,
+				in.Event.Nick,
 			),
 		)
 		return
@@ -106,7 +103,7 @@ func GrabQuote(p *message.Privmsg) {
 
 	db, err := gorm.Open("sqlite3", dbFile)
 	if err != nil {
-		message.Say(p, "couldn't open quotes database")
+		actions.Say("couldn't open quotes database")
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
@@ -115,11 +112,10 @@ func GrabQuote(p *message.Privmsg) {
 	q := QuoteBuffer{}
 	db.First(&q, QuoteBuffer{Nick: quotee})
 	if q.Nick == "" {
-		message.Say(
-			p,
+		actions.Say(
 			fmt.Sprintf(
 				"%s: no entries for %s",
-				p.Event.Nick,
+				in.Event.Nick,
 				quotee,
 			),
 		)
@@ -128,7 +124,7 @@ func GrabQuote(p *message.Privmsg) {
 
 	db.Create(&Quote{Nick: q.Nick, Text: q.Text, Date: q.Date})
 	db.Delete(&q)
-	message.Say(p, fmt.Sprintf("%s: grabbed", p.Event.Nick))
+	actions.Say(fmt.Sprintf("%s: grabbed", in.Event.Nick))
 
 	return
 }
@@ -138,13 +134,12 @@ func HelpGetQuote() []string {
 	return []string{s}
 }
 
-func GetQuote(p *message.Privmsg) {
-	if len(p.MsgArgs) < 2 {
-		message.Say(
-			p,
+func GetQuote(in *message.InboundMsg, actions *Actions) {
+	if len(in.MsgArgs) < 2 {
+		actions.Say(
 			fmt.Sprintf(
 				"%s: you need to specify a nick, dingus",
-				p.Event.Nick,
+				in.Event.Nick,
 			),
 		)
 		return
@@ -152,22 +147,21 @@ func GetQuote(p *message.Privmsg) {
 
 	db, err := gorm.Open("sqlite3", dbFile)
 	if err != nil {
-		message.Say(p, "couldn't open quotes database")
+		actions.Say("couldn't open quotes database")
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 	defer db.Close()
 
-	quotee := strings.TrimSpace(p.MsgArgs[1])
+	quotee := strings.TrimSpace(in.MsgArgs[1])
 
 	quotes := []Quote{}
 	db.Find(&quotes, Quote{Nick: quotee})
 	if len(quotes) == 0 {
-		message.Say(
-			p,
+		actions.Say(
 			fmt.Sprintf(
 				"%s: no entries for %s",
-				p.Event.Nick,
+				in.Event.Nick,
 				quotee,
 			),
 		)
@@ -180,7 +174,7 @@ func GetQuote(p *message.Privmsg) {
 		quote.Nick,
 		quote.Text,
 	)
-	message.Say(p, msg)
+	actions.Say(msg)
 
 	return
 }

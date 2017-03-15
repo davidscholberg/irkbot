@@ -33,15 +33,15 @@ func HelpCompliment() []string {
 	return []string{s}
 }
 
-func Compliment(p *message.Privmsg) {
+func Compliment(in *message.InboundMsg, actions *Actions) {
 	if len(compliments) == 0 {
-		message.Say(p, "error: no compliments loaded")
+		actions.Say("error: no compliments loaded")
 		return
 	}
 
-	recipient := p.Event.Nick
-	if len(p.MsgArgs) > 1 {
-		recipient = strings.TrimSpace(strings.Join(p.MsgArgs[1:], " "))
+	recipient := in.Event.Nick
+	if len(in.MsgArgs) > 1 {
+		recipient = strings.TrimSpace(strings.Join(in.MsgArgs[1:], " "))
 	}
 
 	response := fmt.Sprintf(
@@ -50,5 +50,5 @@ func Compliment(p *message.Privmsg) {
 		compliments[rand.Intn(len(compliments))],
 	)
 
-	message.Say(p, response)
+	actions.Say(response)
 }

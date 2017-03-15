@@ -19,10 +19,10 @@ func HelpQuit() []string {
 	return []string{s}
 }
 
-func Quit(p *message.Privmsg) {
-	if p.Event.Nick != owner {
-		message.Say(p, fmt.Sprintf("%s: %s", p.Event.Nick, denyMessage))
+func Quit(in *message.InboundMsg, actions *Actions) {
+	if in.Event.Nick != owner {
+		actions.Say(fmt.Sprintf("%s: %s", in.Event.Nick, denyMessage))
 		return
 	}
-	p.Conn.Quit()
+	actions.Quit()
 }

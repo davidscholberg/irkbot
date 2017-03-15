@@ -19,14 +19,14 @@ func RegisterHelp(s []string) {
 }
 
 // Help displays help for all bot commands.
-func Help(p *message.Privmsg) {
-	nick := p.Event.Nick
+func Help(in *message.InboundMsg, actions *Actions) {
+	nick := in.Event.Nick
 
-	message.Say(p, fmt.Sprintf("%s: Hello! I am an Irkbot instance - "+
+	actions.Say(fmt.Sprintf("%s: Hello! I am an Irkbot instance - "+
 		"https://github.com/davidscholberg/irkbot", nick))
-	message.Say(p, fmt.Sprintf("%s: Here's my list of commands:", nick))
+	actions.Say(fmt.Sprintf("%s: Here's my list of commands:", nick))
 
 	for _, s := range helpMsgs {
-		message.Say(p, fmt.Sprintf("%s: %s%s", nick, cmdPrefix, s))
+		actions.Say(fmt.Sprintf("%s: %s%s", nick, cmdPrefix, s))
 	}
 }

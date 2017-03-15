@@ -13,10 +13,10 @@ func ConfigEchoName(cfg *configure.Config) {
 	nick = cfg.User.Nick
 }
 
-func EchoName(p *message.Privmsg) bool {
-	if !strings.HasPrefix(p.Msg, fmt.Sprintf("%s!", nick)) {
+func EchoName(in *message.InboundMsg, actions *Actions) bool {
+	if !strings.HasPrefix(in.Msg, fmt.Sprintf("%s!", nick)) {
 		return false
 	}
-	message.Say(p, fmt.Sprintf("%s!", p.Event.Nick))
+	actions.Say(fmt.Sprintf("%s!", in.Event.Nick))
 	return true
 }

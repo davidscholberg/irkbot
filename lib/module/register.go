@@ -11,16 +11,21 @@ import (
 type CommandModule struct {
 	Configure func(*configure.Config)
 	GetHelp   func() []string
-	Run       func(*message.Privmsg)
+	Run       func(*message.InboundMsg, *Actions)
 }
 
 type ParserModule struct {
 	Configure func(*configure.Config)
 	GetHelp   func() []string
-	Run       func(*message.Privmsg) bool
+	Run       func(*message.InboundMsg, *Actions) bool
 }
 
-func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan message.SayMsg) error {
+type Actions struct {
+	Quit func()
+	Say  func(string)
+}
+
+func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan message.OutboundMsg) error {
 	// register modules
 	parserModules := []*ParserModule{}
 	cmdMap := make(map[string]*CommandModule)
@@ -72,20 +77,35 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan m
 	}
 
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
-		p := message.Privmsg{}
-		p.Msg = e.Message()
-		p.MsgArgs = strings.Fields(p.Msg)
-		p.Dest = e.Arguments[0]
-		if !strings.HasPrefix(p.Dest, "#") {
-			p.Dest = e.Nick
+		inboundMsg := message.InboundMsg{}
+		inboundMsg.Msg = e.Message()
+		inboundMsg.MsgArgs = strings.Fields(inboundMsg.Msg)
+		inboundMsg.Src = e.Arguments[0]
+		if !strings.HasPrefix(inboundMsg.Src, "#") {
+			inboundMsg.Src = e.Nick
 		}
-		p.Event = e
-		p.Conn = conn
-		p.SayChan = sayChan
+		inboundMsg.Event = e
+
+		outboundMsg := message.OutboundMsg{}
+		outboundMsg.Dest = inboundMsg.Src
+		outboundMsg.Conn = conn
+		//p.SayChan = sayChan
+
+		sayFunc := func(msg string) {
+			outboundMsg.Msg = msg
+			outChan <- outboundMsg
+		}
+		quitFunc := func() {
+			conn.Quit()
+		}
+		actions := Actions{
+			Quit: quitFunc,
+			Say:  sayFunc,
+		}
 
 		// run parser modules
 		for _, m := range parserModules {
-			if m.Run(&p) {
+			if m.Run(&inboundMsg, &actions) {
 				return
 			}
 		}
@@ -95,9 +115,9 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, sayChan chan m
 		if cmdPrefix == "" {
 			cmdPrefix = "."
 		}
-		if strings.HasPrefix(p.Msg, cmdPrefix) {
-			if m, ok := cmdMap[strings.TrimPrefix(p.MsgArgs[0], cmdPrefix)]; ok {
-				m.Run(&p)
+		if strings.HasPrefix(inboundMsg.Msg, cmdPrefix) {
+			if m, ok := cmdMap[strings.TrimPrefix(inboundMsg.MsgArgs[0], cmdPrefix)]; ok {
+				m.Run(&inboundMsg, &actions)
 			}
 		}
 
