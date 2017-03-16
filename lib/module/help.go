@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
+	"strings"
 )
 
 var cmdPrefix string
@@ -22,11 +23,20 @@ func RegisterHelp(s []string) {
 func Help(in *message.InboundMsg, actions *Actions) {
 	nick := in.Event.Nick
 
-	actions.Say(fmt.Sprintf("%s: Hello! I am an Irkbot instance - "+
-		"https://github.com/davidscholberg/irkbot", nick))
-	actions.Say(fmt.Sprintf("%s: Here's my list of commands:", nick))
+	if strings.HasPrefix(in.Src, "#") {
+		actions.Say(
+			fmt.Sprintf(
+				"%s: check your PMs, fam",
+				nick,
+			),
+		)
+	}
+
+	actions.SayTo(nick, "Hello! I am an Irkbot instance - "+
+		"https://github.com/davidscholberg/irkbot")
+	actions.SayTo(nick, "Here's my list of commands:")
 
 	for _, s := range helpMsgs {
-		actions.Say(fmt.Sprintf("%s: %s%s", nick, cmdPrefix, s))
+		actions.SayTo(nick, fmt.Sprintf("%s%s", cmdPrefix, s))
 	}
 }
