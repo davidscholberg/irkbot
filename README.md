@@ -48,12 +48,12 @@ modules:
         # These files are used by the "slam" module to pull verbal smackdowns
         # from.
         # The slam module will fail gracefully if these options are missing.
-        adjective_file: /home/david/.config/irkbot/slam-adjectives.txt
-        noun_file: /home/david/.config/irkbot/slam-nouns.txt
+        adjective_file: /home/david/var/irkbot/slam-adjectives.txt
+        noun_file: /home/david/var/irkbot/slam-nouns.txt
     compliment:
         # This file is used by the "compliment" module to pull compliments from.
         # The compliment module will fail gracefully if this option is missing.
-        file: /home/david/.config/irkbot/compliments.txt
+        file: /home/david/var/irkbot/compliments.txt
     quit:
     quote:
         # This is the location of the sqlite database used by the quotes module.
@@ -73,9 +73,9 @@ Once you've created the [configuration file](#configure), simply run the Irkbot 
 $GOPATH/bin/irkbot
 ```
 
-Once Irkbot has connected, you can get a list of bot commands by typing `..help` in either a channel that Irkbot is in or a in a private message.
+Once Irkbot has connected, you can get a list of bot commands by typing the help command in either a channel that Irkbot is in or a in a private message. E.g., if the `cmd_prefix` config value is set to `!`, then the help command would be `!help`.
 
-More information about Irkbot's current modules can be gathered by looking at the modules' source in the `lib/modules` directory.
+More information about Irkbot's current modules can be gathered by looking at the modules' source in the [lib/module](lib/module) directory.
 
 ### Module development
 
@@ -83,7 +83,7 @@ Irkbot has a simple system for creating modules that extend the bot's functional
 
 Below is an example PRIVMSG module that adds an echo command to the bot. The echo module runs when a PRIVMSG contains the echo command and sends a PRIVMSG back echoing the rest of the line.
 
-This module file belongs in the `lib/module/` directory.
+This module file belongs in the [lib/module](lib/module) directory.
 
 ```go
 // module is the package for all irkbot modules
@@ -109,7 +109,7 @@ func HelpEcho() []string {
 	return []string{s}
 }
 
-func Echo(in *message.InboundMsg, actions *Actions) {
+func Echo(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	// Grab the rest of the message.
 	msg := strings.Join(in.MsgArgs[1:], " ")
 
@@ -118,7 +118,7 @@ func Echo(in *message.InboundMsg, actions *Actions) {
 }
 ```
 
-The final step is to add the echo module functions to the switch statement in the RegisterModules function in `lib/module/register.go`:
+The final step is to add the echo module functions to the switch statement in the RegisterModules function in [lib/module/register.go](lib/module/register.go):
 
 ```go
 		case "echo":
