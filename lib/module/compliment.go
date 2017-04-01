@@ -33,7 +33,7 @@ func HelpCompliment() []string {
 	return []string{s}
 }
 
-func Compliment(in *message.InboundMsg, actions *Actions) {
+func Compliment(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	if len(compliments) == 0 {
 		actions.Say("error: no compliments loaded")
 		return

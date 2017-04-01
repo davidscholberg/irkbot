@@ -3,6 +3,7 @@ package module
 import (
 	"fmt"
 	"github.com/davidscholberg/go-urbandict"
+	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
 	"strings"
 )
@@ -29,15 +30,15 @@ func HelpUrbanTrending() []string {
 	return s
 }
 
-func Urban(in *message.InboundMsg, actions *Actions) {
+func Urban(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	showSearchResult(in, actions)
 }
 
-func UrbanWotd(in *message.InboundMsg, actions *Actions) {
+func UrbanWotd(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	showDefinition(in, actions, true)
 }
 
-func UrbanTrending(in *message.InboundMsg, actions *Actions) {
+func UrbanTrending(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	showTrending(in, actions)
 }
 

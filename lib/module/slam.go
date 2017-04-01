@@ -41,7 +41,7 @@ func HelpSlam() []string {
 	return []string{s}
 }
 
-func Slam(in *message.InboundMsg, actions *Actions) {
+func Slam(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	if len(adjectives) == 0 || len(nouns) == 0 {
 		actions.Say("error: no smackdowns loaded")
 		return

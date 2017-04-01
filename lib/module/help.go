@@ -7,12 +7,7 @@ import (
 	"strings"
 )
 
-var cmdPrefix string
 var helpMsgs []string
-
-func ConfigHelp(cfg *configure.Config) {
-	cmdPrefix = cfg.Channel.CmdPrefix
-}
 
 // RegisterHelp allows modules to define help strings to be displayed on command.
 func RegisterHelp(s []string) {
@@ -20,7 +15,7 @@ func RegisterHelp(s []string) {
 }
 
 // Help displays help for all bot commands.
-func Help(in *message.InboundMsg, actions *Actions) {
+func Help(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	nick := in.Event.Nick
 
 	if strings.HasPrefix(in.Src, "#") {
@@ -37,6 +32,6 @@ func Help(in *message.InboundMsg, actions *Actions) {
 	actions.SayTo(nick, "Here's my list of commands:")
 
 	for _, s := range helpMsgs {
-		actions.SayTo(nick, fmt.Sprintf("%s%s", cmdPrefix, s))
+		actions.SayTo(nick, fmt.Sprintf("%s%s", cfg.Channel.CmdPrefix, s))
 	}
 }

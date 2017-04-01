@@ -11,13 +11,13 @@ import (
 type CommandModule struct {
 	Configure func(*configure.Config)
 	GetHelp   func() []string
-	Run       func(*message.InboundMsg, *Actions)
+	Run       func(*configure.Config, *message.InboundMsg, *Actions)
 }
 
 type ParserModule struct {
 	Configure func(*configure.Config)
 	GetHelp   func() []string
-	Run       func(*message.InboundMsg, *Actions) bool
+	Run       func(*configure.Config, *message.InboundMsg, *Actions) bool
 }
 
 type Actions struct {
@@ -33,21 +33,21 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 	for moduleName, _ := range cfg.Modules {
 		switch moduleName {
 		case "echo_name":
-			parserModules = append(parserModules, &ParserModule{ConfigEchoName, nil, EchoName})
+			parserModules = append(parserModules, &ParserModule{nil, nil, EchoName})
 		case "help":
-			cmdMap["help"] = &CommandModule{ConfigHelp, nil, Help}
+			cmdMap["help"] = &CommandModule{nil, nil, Help}
 		case "slam":
 			cmdMap["slam"] = &CommandModule{ConfigSlam, HelpSlam, Slam}
 		case "compliment":
 			cmdMap["compliment"] = &CommandModule{ConfigCompliment, HelpCompliment, Compliment}
 		case "quit":
-			cmdMap["quit"] = &CommandModule{ConfigQuit, HelpQuit, Quit}
+			cmdMap["quit"] = &CommandModule{nil, HelpQuit, Quit}
 		case "quote":
 			parserModules = append(parserModules, &ParserModule{ConfigQuote, nil, UpdateQuoteBuffer})
 			cmdMap["grab"] = &CommandModule{nil, HelpGrabQuote, GrabQuote}
 			cmdMap["quote"] = &CommandModule{nil, HelpGetQuote, GetQuote}
 		case "say":
-			cmdMap["say"] = &CommandModule{ConfigSay, HelpSay, Say}
+			cmdMap["say"] = &CommandModule{nil, HelpSay, Say}
 		case "urban":
 			cmdMap["urban"] = &CommandModule{nil, HelpUrban, Urban}
 		case "urban_wotd":
@@ -114,7 +114,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 
 		// run parser modules
 		for _, m := range parserModules {
-			if m.Run(&inboundMsg, &actions) {
+			if m.Run(cfg, &inboundMsg, &actions) {
 				return
 			}
 		}
@@ -126,7 +126,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		}
 		if strings.HasPrefix(inboundMsg.Msg, cmdPrefix) {
 			if m, ok := cmdMap[strings.TrimPrefix(inboundMsg.MsgArgs[0], cmdPrefix)]; ok {
-				m.Run(&inboundMsg, &actions)
+				m.Run(cfg, &inboundMsg, &actions)
 			}
 		}
 

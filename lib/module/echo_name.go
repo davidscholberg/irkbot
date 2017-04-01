@@ -7,14 +7,8 @@ import (
 	"strings"
 )
 
-var nick string
-
-func ConfigEchoName(cfg *configure.Config) {
-	nick = cfg.User.Nick
-}
-
-func EchoName(in *message.InboundMsg, actions *Actions) bool {
-	if !strings.HasPrefix(in.Msg, fmt.Sprintf("%s!", nick)) {
+func EchoName(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
+	if !strings.HasPrefix(in.Msg, fmt.Sprintf("%s!", cfg.User.Nick)) {
 		return false
 	}
 	actions.Say(fmt.Sprintf("%s!", in.Event.Nick))

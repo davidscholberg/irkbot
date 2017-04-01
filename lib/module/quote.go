@@ -42,7 +42,7 @@ func ConfigQuote(cfg *configure.Config) {
 	db.AutoMigrate(&Quote{})
 }
 
-func UpdateQuoteBuffer(in *message.InboundMsg, actions *Actions) bool {
+func UpdateQuoteBuffer(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
 	// don't update quote buffer in PMs
 	if !strings.HasPrefix(in.Src, "#") {
 		return false
@@ -67,7 +67,7 @@ func HelpGrabQuote() []string {
 	return []string{s}
 }
 
-func GrabQuote(in *message.InboundMsg, actions *Actions) {
+func GrabQuote(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	// don't allow quote grabs in PMs
 	if !strings.HasPrefix(in.Src, "#") {
 		actions.Say(
@@ -134,7 +134,7 @@ func HelpGetQuote() []string {
 	return []string{s}
 }
 
-func GetQuote(in *message.InboundMsg, actions *Actions) {
+func GetQuote(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	if len(in.MsgArgs) < 2 {
 		actions.Say(
 			fmt.Sprintf(

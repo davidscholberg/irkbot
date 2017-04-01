@@ -2,6 +2,7 @@ package module
 
 import (
 	"fmt"
+	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/mvdan/xurls"
 	"golang.org/x/net/html"
@@ -12,7 +13,7 @@ import (
 )
 
 // Url attempts to fetch the title of the HTML document returned by a URL
-func Url(in *message.InboundMsg, actions *Actions) bool {
+func Url(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
 	urls := xurls.Strict.FindAllString(in.Msg, -1)
 
 	for _, urlStr := range urls {

@@ -7,22 +7,14 @@ import (
 	"strings"
 )
 
-var sayOwner string
-var sayDenyMessage string
-
-func ConfigSay(cfg *configure.Config) {
-	sayOwner = cfg.Admin.Owner
-	sayDenyMessage = cfg.Admin.DenyMessage
-}
-
 func HelpSay() []string {
 	s := "say <dest> <message> - send message to dest (requires owner privilege)"
 	return []string{s}
 }
 
-func Say(in *message.InboundMsg, actions *Actions) {
-	if in.Event.Nick != sayOwner {
-		actions.Say(fmt.Sprintf("%s: %s", in.Event.Nick, sayDenyMessage))
+func Say(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+	if in.Event.Nick != cfg.Admin.Owner {
+		actions.Say(fmt.Sprintf("%s: %s", in.Event.Nick, cfg.Admin.DenyMessage))
 		return
 	}
 
