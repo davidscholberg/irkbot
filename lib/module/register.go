@@ -16,7 +16,6 @@ type CommandModule struct {
 
 type ParserModule struct {
 	Configure func(*configure.Config)
-	GetHelp   func() []string
 	Run       func(*configure.Config, *message.InboundMsg, *Actions) bool
 }
 
@@ -33,7 +32,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 	for moduleName, _ := range cfg.Modules {
 		switch moduleName {
 		case "echo_name":
-			parserModules = append(parserModules, &ParserModule{nil, nil, EchoName})
+			parserModules = append(parserModules, &ParserModule{nil, EchoName})
 		case "help":
 			cmdMap["help"] = &CommandModule{nil, nil, Help}
 		case "slam":
@@ -43,7 +42,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		case "quit":
 			cmdMap["quit"] = &CommandModule{nil, HelpQuit, Quit}
 		case "quote":
-			parserModules = append(parserModules, &ParserModule{ConfigQuote, nil, UpdateQuoteBuffer})
+			parserModules = append(parserModules, &ParserModule{ConfigQuote, UpdateQuoteBuffer})
 			cmdMap["grab"] = &CommandModule{nil, HelpGrabQuote, GrabQuote}
 			cmdMap["quote"] = &CommandModule{nil, HelpGetQuote, GetQuote}
 		case "say":
@@ -55,7 +54,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		case "urban_trending":
 			cmdMap["urban_trending"] = &CommandModule{nil, HelpUrbanTrending, UrbanTrending}
 		case "url":
-			parserModules = append(parserModules, &ParserModule{nil, nil, Url})
+			parserModules = append(parserModules, &ParserModule{nil, Url})
 		default:
 			return fmt.Errorf("invalid name '%s' in module config", moduleName)
 		}
@@ -71,9 +70,6 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 	}
 
 	for _, m := range parserModules {
-		if m.GetHelp != nil {
-			RegisterHelp(m.GetHelp())
-		}
 		if m.Configure != nil {
 			m.Configure(cfg)
 		}
