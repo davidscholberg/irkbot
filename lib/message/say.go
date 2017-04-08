@@ -19,21 +19,25 @@ type OutboundMsg struct {
 }
 
 func SayLoop(outChan chan OutboundMsg) {
-	messageTimeouts := make(map[string]time.Time)
+	latestMessageTimes := make(map[string]time.Time)
 
 	for o := range outChan {
-		sleepDuration := time.Duration(0)
+		timerDuration := time.Duration(0)
+		inboundTime := time.Now()
 
-		if prevTime, ok := messageTimeouts[o.Dest]; ok {
-			sleepDuration = time.Second - time.Now().Sub(prevTime)
-			if sleepDuration < 0 {
-				sleepDuration = time.Duration(0)
+		if lastMessageTime, ok := latestMessageTimes[o.Dest]; ok {
+			timerDuration = time.Second - inboundTime.Sub(lastMessageTime)
+			if timerDuration < 0 {
+				timerDuration = time.Duration(0)
 			}
 		}
 
-		time.Sleep(sleepDuration)
-		messageTimeouts[o.Dest] = time.Now()
-
-		o.Conn.Privmsg(o.Dest, o.Msg)
+		latestMessageTimes[o.Dest] = inboundTime.Add(timerDuration)
+		conn := o.Conn
+		dest := o.Dest
+		msg := o.Msg
+		time.AfterFunc(timerDuration, func() {
+			conn.Privmsg(dest, msg)
+		})
 	}
 }
