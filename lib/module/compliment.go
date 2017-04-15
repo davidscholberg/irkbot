@@ -17,8 +17,6 @@ type Compliment struct {
 	Text string `gorm:"unique_index:idx_compliment_text"`
 }
 
-var compliments []Compliment
-
 func ConfigCompliment(cfg *configure.Config) {
 	dbFile := cfg.Modules["compliment"]["db_file"]
 
@@ -31,8 +29,6 @@ func ConfigCompliment(cfg *configure.Config) {
 
 	db.AutoMigrate(&Compliment{})
 
-	db.Find(&compliments)
-
 	// seed rng
 	rand.Seed(time.Now().UnixNano())
 }
@@ -44,8 +40,21 @@ func HelpCompliment() []string {
 }
 
 func GiveCompliment(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+	dbFile := cfg.Modules["compliment"]["db_file"]
+
+	db, err := gorm.Open("sqlite3", dbFile)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		actions.Say("error: couldn't open compliment database")
+		return
+	}
+	defer db.Close()
+
+	compliments := []Compliment{}
+	db.Find(&compliments)
+
 	if len(compliments) == 0 {
-		actions.Say("error: no compliments loaded")
+		actions.Say("error: no compliments found")
 		return
 	}
 
