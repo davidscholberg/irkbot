@@ -22,9 +22,6 @@ type Noun struct {
 	Word string `gorm:"unique_index:idx_noun_word"`
 }
 
-var adjectives []Adjective
-var nouns []Noun
-
 func ConfigSlam(cfg *configure.Config) {
 	dbFile := cfg.Modules["slam"]["db_file"]
 
@@ -38,9 +35,6 @@ func ConfigSlam(cfg *configure.Config) {
 	db.AutoMigrate(&Adjective{})
 	db.AutoMigrate(&Noun{})
 
-	db.Find(&adjectives)
-	db.Find(&nouns)
-
 	// seed rng
 	rand.Seed(time.Now().UnixNano())
 }
@@ -52,8 +46,23 @@ func HelpSlam() []string {
 }
 
 func Slam(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+	dbFile := cfg.Modules["slam"]["db_file"]
+
+	db, err := gorm.Open("sqlite3", dbFile)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		actions.Say("error: couldn't open slam database")
+		return
+	}
+	defer db.Close()
+
+	adjectives := []Adjective{}
+	nouns := []Noun{}
+	db.Find(&adjectives)
+	db.Find(&nouns)
+
 	if len(adjectives) == 0 || len(nouns) == 0 {
-		actions.Say("error: no smackdowns loaded")
+		actions.Say("error: no smackdowns found")
 		return
 	}
 
