@@ -4,32 +4,36 @@ import (
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
-	"io/ioutil"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
 )
 
-var adjectives []string
-var nouns []string
+type Adjective struct {
+	ID   uint   `gorm:"primary_key"`
+	Word string `gorm:"unique_index:idx_adjective_word"`
+}
+
+type Noun struct {
+	ID   uint   `gorm:"primary_key"`
+	Word string `gorm:"unique_index:idx_noun_word"`
+}
 
 func ConfigSlam(cfg *configure.Config) {
-	// initialize word arrays
-	adjectiveBytes, err := ioutil.ReadFile(cfg.Modules["slam"]["adjective_file"])
+	dbFile := cfg.Modules["slam"]["db_file"]
+
+	db, err := gorm.Open("sqlite3", dbFile)
 	if err != nil {
-		// TODO: use logger here
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	nounBytes, err := ioutil.ReadFile(cfg.Modules["slam"]["noun_file"])
-	if err != nil {
-		// TODO: use logger here
-		fmt.Fprintln(os.Stderr, err)
-		return
-	}
-	adjectives = strings.Split(string(adjectiveBytes), "\n")
-	nouns = strings.Split(string(nounBytes), "\n")
+	defer db.Close()
+
+	db.AutoMigrate(&Adjective{})
+	db.AutoMigrate(&Noun{})
 
 	// seed rng
 	rand.Seed(time.Now().UnixNano())
@@ -42,8 +46,23 @@ func HelpSlam() []string {
 }
 
 func Slam(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+	dbFile := cfg.Modules["slam"]["db_file"]
+
+	db, err := gorm.Open("sqlite3", dbFile)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		actions.Say("error: couldn't open slam database")
+		return
+	}
+	defer db.Close()
+
+	adjectives := []Adjective{}
+	nouns := []Noun{}
+	db.Find(&adjectives)
+	db.Find(&nouns)
+
 	if len(adjectives) == 0 || len(nouns) == 0 {
-		actions.Say("error: no smackdowns loaded")
+		actions.Say("error: no smackdowns found")
 		return
 	}
 
@@ -55,8 +74,8 @@ func Slam(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	response := fmt.Sprintf(
 		"%s: u %s %s",
 		victim,
-		adjectives[rand.Intn(len(adjectives))],
-		nouns[rand.Intn(len(nouns))])
+		adjectives[rand.Intn(len(adjectives))].Word,
+		nouns[rand.Intn(len(nouns))].Word)
 
 	actions.Say(response)
 }

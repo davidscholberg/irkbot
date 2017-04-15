@@ -4,24 +4,30 @@ import (
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
-	"io/ioutil"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
 )
 
-var compliments []string
+type Compliment struct {
+	ID   uint   `gorm:"primary_key"`
+	Text string `gorm:"unique_index:idx_compliment_text"`
+}
 
 func ConfigCompliment(cfg *configure.Config) {
-	// initialize compliment array
-	complimentBytes, err := ioutil.ReadFile(cfg.Modules["compliment"]["file"])
+	dbFile := cfg.Modules["compliment"]["db_file"]
+
+	db, err := gorm.Open("sqlite3", dbFile)
 	if err != nil {
-		// TODO: use logger here
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	compliments = strings.Split(string(complimentBytes), "\n")
+	defer db.Close()
+
+	db.AutoMigrate(&Compliment{})
 
 	// seed rng
 	rand.Seed(time.Now().UnixNano())
@@ -33,9 +39,22 @@ func HelpCompliment() []string {
 	return []string{s}
 }
 
-func Compliment(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func GiveCompliment(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+	dbFile := cfg.Modules["compliment"]["db_file"]
+
+	db, err := gorm.Open("sqlite3", dbFile)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		actions.Say("error: couldn't open compliment database")
+		return
+	}
+	defer db.Close()
+
+	compliments := []Compliment{}
+	db.Find(&compliments)
+
 	if len(compliments) == 0 {
-		actions.Say("error: no compliments loaded")
+		actions.Say("error: no compliments found")
 		return
 	}
 
@@ -47,7 +66,7 @@ func Compliment(cfg *configure.Config, in *message.InboundMsg, actions *Actions)
 	response := fmt.Sprintf(
 		"%s: %s",
 		recipient,
-		compliments[rand.Intn(len(compliments))],
+		compliments[rand.Intn(len(compliments))].Text,
 	)
 
 	actions.Say(response)
