@@ -69,7 +69,10 @@ Once you've created the [configuration file](#configure), simply run the Irkbot 
 $GOPATH/bin/irkbot
 ```
 
-Once Irkbot has connected, you can get a list of bot commands by typing the help command in either a channel that Irkbot is in or a in a private message. E.g., if the `cmd_prefix` config value is set to `!`, then the help command would be `!help`.
+Once Irkbot has connected, you can get a list of bot commands by typing one of the following in either a channel that Irkbot is in or in a private message:
+
+* Assuming the bot's nick is `mybot`: `mybot: help`
+* Assuming the `cmd_prefix` config value is `!`: `!help`
 
 More information about Irkbot's current modules can be gathered by looking at the modules' source in the [lib/module](lib/module) directory.
 

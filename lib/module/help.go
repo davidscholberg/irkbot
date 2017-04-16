@@ -35,3 +35,13 @@ func Help(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		actions.SayTo(nick, fmt.Sprintf("%s%s", cfg.Channel.CmdPrefix, s))
 	}
 }
+
+func ParseHelp(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
+	if strings.TrimSpace(in.Msg) != fmt.Sprintf("%s: help", cfg.User.Nick) {
+		return false
+	}
+
+	Help(cfg, in, actions)
+
+	return false
+}
