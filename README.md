@@ -45,15 +45,11 @@ modules:
     echo_name:
     help:
     slam:
-        # These files are used by the "slam" module to pull verbal smackdowns
-        # from.
-        # The slam module will fail gracefully if these options are missing.
-        adjective_file: /home/david/var/irkbot/slam-adjectives.txt
-        noun_file: /home/david/var/irkbot/slam-nouns.txt
+        # This is the location of the sqlite database used by the slam module.
+        db_file: /home/david/var/irkbot/slam.db
     compliment:
-        # This file is used by the "compliment" module to pull compliments from.
-        # The compliment module will fail gracefully if this option is missing.
-        file: /home/david/var/irkbot/compliments.txt
+        # This is the location of the sqlite database used by the compliment module.
+        db_file: /home/david/var/irkbot/compliment.db
     quit:
     quote:
         # This is the location of the sqlite database used by the quotes module.
