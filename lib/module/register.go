@@ -6,6 +6,7 @@ import (
 	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/thoj/go-ircevent"
 	"strings"
+	"time"
 )
 
 type CommandModule struct {
@@ -19,6 +20,13 @@ type ParserModule struct {
 	Run       func(*configure.Config, *message.InboundMsg, *Actions) bool
 }
 
+type TickerModule struct {
+	Configure   func(*configure.Config)
+	GetDuration func(*configure.Config) time.Duration
+	Run         func(*configure.Config, time.Time, *Actions)
+	Ticker      *time.Ticker
+}
+
 type Actions struct {
 	Quit  func()
 	Say   func(string)
@@ -26,9 +34,9 @@ type Actions struct {
 }
 
 func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan message.OutboundMsg) error {
-	// register modules
-	parserModules := []*ParserModule{}
 	cmdMap := make(map[string]*CommandModule)
+	parserModules := []*ParserModule{}
+	tickerModules := []*TickerModule{}
 	for moduleName, _ := range cfg.Modules {
 		switch moduleName {
 		case "echo_name":
@@ -43,9 +51,18 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		case "quit":
 			cmdMap["quit"] = &CommandModule{nil, HelpQuit, Quit}
 		case "quote":
-			parserModules = append(parserModules, &ParserModule{ConfigQuote, UpdateQuoteBuffer})
 			cmdMap["grab"] = &CommandModule{nil, HelpGrabQuote, GrabQuote}
 			cmdMap["quote"] = &CommandModule{nil, HelpGetQuote, GetQuote}
+			parserModules = append(parserModules, &ParserModule{ConfigQuote, UpdateQuoteBuffer})
+			tickerModules = append(
+				tickerModules,
+				&TickerModule{
+					nil,
+					GetCleanQuoteBufferDuration,
+					CleanQuoteBuffer,
+					nil,
+				},
+			)
 		case "say":
 			cmdMap["say"] = &CommandModule{nil, HelpSay, Say}
 		case "urban":
@@ -78,6 +95,36 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		}
 	}
 
+	actions := Actions{
+		Quit: func() {
+			conn.Quit()
+		},
+		SayTo: func(dest string, msg string) {
+			outboundMsg := message.OutboundMsg{
+				Conn: conn,
+				Dest: dest,
+				Msg:  msg,
+			}
+			outChan <- outboundMsg
+		},
+	}
+
+	for _, m := range tickerModules {
+		if m.Configure != nil {
+			m.Configure(cfg)
+		}
+		m.Ticker = time.NewTicker(m.GetDuration(cfg))
+		tickerChan := m.Ticker.C
+		run := m.Run
+		go func() {
+			// Note that the sender of this channel will never close it.
+			// It must be closed manually after time.Stop in order to exit this goroutine.
+			for t := range tickerChan {
+				run(cfg, t, &actions)
+			}
+		}()
+	}
+
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
 		inboundMsg := message.InboundMsg{}
 		inboundMsg.Msg = e.Message()
@@ -88,27 +135,13 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		}
 		inboundMsg.Event = e
 
-		outboundMsg := message.OutboundMsg{}
-		outboundMsg.Dest = inboundMsg.Src
-		outboundMsg.Conn = conn
-		//p.SayChan = sayChan
-
-		quitFunc := func() {
-			conn.Quit()
-		}
-		sayFunc := func(msg string) {
-			outboundMsg.Msg = msg
+		actions.Say = func(msg string) {
+			outboundMsg := message.OutboundMsg{
+				Conn: conn,
+				Dest: inboundMsg.Src,
+				Msg:  msg,
+			}
 			outChan <- outboundMsg
-		}
-		sayToFunc := func(dest string, msg string) {
-			outboundMsg.Dest = dest
-			outboundMsg.Msg = msg
-			outChan <- outboundMsg
-		}
-		actions := Actions{
-			Quit:  quitFunc,
-			Say:   sayFunc,
-			SayTo: sayToFunc,
 		}
 
 		// run parser modules
