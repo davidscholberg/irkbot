@@ -133,6 +133,44 @@ If you omit the config function, the register function call would be:
 
 To enable the module, you'll need to add it to the `modules` section of the Irkbot configuration file.
 
+### Dockerize
+
+Irkbot has a [Dockerfile](Dockerfile) allowing you to easily create an Irkbot docker image. You'll need a working installation of [Docker](https://www.docker.com/) for the following steps.
+
+To build the Irkbot image, run the following:
+
+```bash
+docker build --force-rm --tag irkbot:latest .
+```
+
+In addition to the image, you'll also want to create docker volumes for the sqlite databases and config file:
+
+```bash
+docker volume create irkbot-data-vol
+docker volume create irkbot-config-vol
+```
+
+Now we'll create a temporary container that we can use to copy data to the volumes, and then copy our existing config and sqlite databases.
+
+**Note:** If you don't have any sqlite databases yet, Irkbot will create them in the docker volume on the first run.
+
+```bash
+docker run --volume irkbot-data-vol:/irkbot-data --volume irkbot-config-vol:/irkbot-config --name irkbot-tmp-container busybox true
+docker cp /home/dhscholb/.config/irkbot/irkbot.yml irkbot-tmp-container:/irkbot-config/
+docker cp /home/dhscholb/var/irkbot/compliment.db irkbot-tmp-container:/irkbot-data/
+docker cp /home/dhscholb/var/irkbot/quotes.db irkbot-tmp-container:/irkbot-data/
+docker cp /home/dhscholb/var/irkbot/slam.db irkbot-tmp-container:/irkbot-data/
+docker rm irkbot-tmp-container
+```
+
+Now we can create a container to run Irkbot in.
+
+**Note:** Don't worry about deleting the container; any changes to the irkbot docker volumes will persist.
+
+```bash
+docker run --rm --volume irkbot-data-vol:/srv/db/irkbot --volume irkbot-config-vol:/root/.config/irkbot irkbot
+```
+
 ### TODO
 
 * Alphabetize help string array.
