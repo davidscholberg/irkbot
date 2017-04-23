@@ -5,6 +5,7 @@ import (
 	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/davidscholberg/irkbot/lib/module"
 	"github.com/thoj/go-ircevent"
+	"time"
 )
 
 func GetIrcConn(cfg *configure.Config) (*irc.Connection, error) {
@@ -16,6 +17,9 @@ func GetIrcConn(cfg *configure.Config) (*irc.Connection, error) {
 	conn.AddCallback("001", func(e *irc.Event) {
 		if cfg.User.Identify && conn.GetNick() == cfg.User.Nick {
 			conn.Privmsgf("NickServ", "identify %s", cfg.User.Password)
+			// temporary horrible hack to allow time to be identified
+			// before joining a channel
+			time.Sleep(time.Second * 10)
 		}
 		conn.Join(cfg.Channel.ChannelName)
 	})
