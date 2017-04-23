@@ -151,6 +151,7 @@ docker volume create irkbot-config-vol
 ```
 
 Now we'll create a temporary container that we can use to copy data to the volumes, and then copy our existing config and sqlite databases.
+
     * If you don't have any sqlite databases yet, Irkbot will create them in the docker volume on the first run.
 
 ```bash
@@ -163,6 +164,7 @@ docker rm irkbot-tmp-container
 ```
 
 Now we can create a container to run Irkbot in.
+
     * Don't worry about deleting the container; any changes to the irkbot docker volumes will persist.
 
 ```bash
