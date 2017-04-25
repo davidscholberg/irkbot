@@ -58,6 +58,8 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			parserModules = append(parserModules, &ParserModule{nil, Url})
 		case "interject":
 			cmdMap["interject"] = &CommandModule{nil, HelpInterject, Interject}
+		case "xkcd":
+			cmdMap["xkcd"] = &CommandModule{nil, Helpxkcd, getXKCD}
 		default:
 			return fmt.Errorf("invalid name '%s' in module config", moduleName)
 		}
