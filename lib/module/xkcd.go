@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -18,6 +19,8 @@ func Helpxkcd() []string {
 	s := "xkcd <search> - find a xkcd comic relevant to the search term"
 	return []string{s}
 }
+
+//Perform the actual GET and return the resulting body as a string
 func get(apiURL string) (string, error) {
 	response, err := http.Get(apiURL)
 	if err != nil {
@@ -29,18 +32,25 @@ func get(apiURL string) (string, error) {
 		return "", err
 	}
 	bodyString := string(bodyBytes)
-	return bodyString, err
+	return bodyString, nil
 }
-func fmtString(bodyString string) string {
+
+//Parse the body string for the comic number we want
+func parseString(bodyString string) string {
 	bodyStrings := strings.Split(bodyString, "\n")
+	if len(bodyStrings) < 3 {
+		return "error"
+	}
 	spacedStrings := strings.Fields(bodyStrings[2])
 	return spacedStrings[0]
 }
+
+//Method called on xkcd command, named funky so as not to collide with xkcd-go
 func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
-	comic := "enter a search term, asshat"
+	comicMsg := "enter a search term, dipthong"
 	//If no search term, gently remind the user to input one
 	if len(in.MsgArgs[1:]) == 0 {
-		actions.Say(comic)
+		actions.Say(comicMsg)
 		return
 	}
 	query := url.Values{}
@@ -50,21 +60,29 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	apiUrl := fmt.Sprintf(apiUrlFmtDefine, query.Encode())
 	comicString, comicErr := get(apiUrl)
 	if comicErr != nil {
+		fmt.Fprintln(os.Stderr, comicErr)
 		actions.Say("something borked, try again")
 		return
 	}
-	comicNum := fmtString(comicString)
+	comicNum := parseString(comicString)
+	if comicNum == "error" {
+		fmt.Fprintln(os.Stdout, "error in parsing string from GET")
+		actions.Say("something borked, try again")
+		return
+	}
 	client := xkcd.NewClient()
 	i, strconvErr := strconv.Atoi(comicNum)
 	if strconvErr != nil {
+		fmt.Fprintln(os.Stderr, strconvErr)
 		actions.Say("something borked, try again")
 		return
 	}
 	comicGet, err := client.Get(i)
 	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		actions.Say("something borked, try again")
 		return
 	}
-	comic = fmt.Sprintf("https://xkcd.com/%s/ - %s ", comicNum, comicGet.Title)
-	actions.Say(comic)
+	comicMsg = fmt.Sprintf("%s - https://xkcd.com/%s/ ", comicGet.Title, comicNum)
+	actions.Say(comicMsg)
 }
