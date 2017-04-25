@@ -36,18 +36,21 @@ func get(apiURL string) (string, error) {
 }
 
 //Parse the body string for the comic number we want
-func parseString(bodyString string) string {
+func parseString(bodyString string) (string, error) {
 	bodyStrings := strings.Split(bodyString, "\n")
 	if len(bodyStrings) < 3 {
-		return "error"
+		return "", fmt.Errorf("error in parsing string: splitting body by line failed")
 	}
 	spacedStrings := strings.Fields(bodyStrings[2])
-	return spacedStrings[0]
+	if len(spacedStrings) < 1 {
+		return "", fmt.Errorf("error in parsing string: accessing substring of bodyStrings failed")
+	}
+	return spacedStrings[0], nil
 }
 
 //Method called on xkcd command, named funky so as not to collide with xkcd-go
 func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
-	comicMsg := "enter a search term, dipthong"
+	comicMsg := "enter a search term, dipstick"
 	//If no search term, gently remind the user to input one
 	if len(in.MsgArgs[1:]) == 0 {
 		actions.Say(comicMsg)
@@ -64,9 +67,9 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		actions.Say("something borked, try again")
 		return
 	}
-	comicNum := parseString(comicString)
-	if comicNum == "error" {
-		fmt.Fprintln(os.Stdout, "error in parsing string from GET")
+	comicNum, parseErr := parseString(comicString)
+	if parseErr != nil {
+		fmt.Fprintln(os.Stderr, parseErr)
 		actions.Say("something borked, try again")
 		return
 	}
@@ -83,6 +86,6 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		actions.Say("something borked, try again")
 		return
 	}
-	comicMsg = fmt.Sprintf("%s - https://xkcd.com/%s/ ", comicGet.Title, comicNum)
+	comicMsg = fmt.Sprintf("%s - https://xkcd.com/%s/", comicGet.Title, comicNum)
 	actions.Say(comicMsg)
 }
