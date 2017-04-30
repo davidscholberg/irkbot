@@ -8,6 +8,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -60,6 +61,34 @@ func UpdateQuoteBuffer(cfg *configure.Config, in *message.InboundMsg, actions *A
 	db.Model(&q).Updates(QuoteBuffer{Text: in.Msg, Date: time.Now()})
 
 	return false
+}
+
+func CleanQuoteBuffer(cfg *configure.Config, t time.Time, actions *Actions) {
+	db, err := gorm.Open("sqlite3", dbFile)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	defer db.Close()
+
+	err = db.Delete(QuoteBuffer{}, "date < datetime('now', '-1 days')").Error
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+}
+
+func GetCleanQuoteBufferDuration(cfg *configure.Config) time.Duration {
+	secondsStr, ok := cfg.Modules["quote"]["clean_quote_buffer_duration"]
+	if !ok {
+		secondsStr = "600"
+	}
+	seconds, err := strconv.Atoi(secondsStr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s, using default time of 600 seconds", err)
+		seconds = 600
+	}
+	return time.Second * time.Duration(seconds)
 }
 
 func HelpGrabQuote() []string {
