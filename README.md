@@ -25,6 +25,8 @@ server:
     host: irc.freenode.net
     port: 7000
     use_tls: True
+    server_auth: False
+    server_pass: password
 
 channel:
     channel_name: "#blahblah"

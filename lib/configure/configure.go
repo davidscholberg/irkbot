@@ -15,9 +15,11 @@ type Config struct {
 		Password string `yaml:"password"`
 	} `yaml:"user"`
 	Server struct {
-		Host   string `yaml:"host"`
-		Port   string `yaml:"port"`
-		UseTls bool   `yaml:"use_tls"`
+		Host           string `yaml:"host"`
+		Port           string `yaml:"port"`
+		UseTls         bool   `yaml:"use_tls"`
+		ServerAuth     bool   `yaml:"server_auth"`
+		ServerPassword string `yaml:"server_pass"`
 	} `yaml:"server"`
 	Channel struct {
 		ChannelName string `yaml:"channel_name"`

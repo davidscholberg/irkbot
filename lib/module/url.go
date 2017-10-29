@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
-	"github.com/mvdan/xurls"
 	"golang.org/x/net/html"
+	"mvdan.cc/xurls"
 	"net"
 	"net/http"
 	urllib "net/url"
@@ -14,7 +14,7 @@ import (
 
 // Url attempts to fetch the title of the HTML document returned by a URL
 func Url(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
-	urls := xurls.Strict.FindAllString(in.Msg, -1)
+	urls := xurls.Strict().FindAllString(in.Msg, -1)
 
 	for _, urlStr := range urls {
 		url, err := urllib.Parse(urlStr)
