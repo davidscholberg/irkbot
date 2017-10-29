@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/dvdmuckle/irkbot/lib/configure"
-	"github.com/dvdmuckle/irkbot/lib/message"
+	"github.com/davidscholberg/irkbot/lib/configure"
+	"github.com/davidscholberg/irkbot/lib/message"
 	"net/http"
 	"os"
 	"strings"
@@ -27,7 +27,6 @@ func HelpDoom() []string {
 	return []string{s}
 }
 
-//Sanitize input
 func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	if len(in.MsgArgs[1:]) == 0 {
 		actions.Say("enter a command, dipstick")
