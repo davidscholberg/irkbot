@@ -16,12 +16,12 @@ type Paste struct {
     Text string
 }
 
-var dbFile string
+var dbPasteFile string
 
 func ConfigPaste(cfg *configure.Config) {
-    dbFile = cfg.Modules["paste"]["db_file"]
+    dbPasteFile = cfg.Modules["paste"]["db_file"]
 
-    db, err := gorm.Open("sqlite3", dbFile)
+    db, err := gorm.Open("sqlite3", dbPasteFile)
     if err != nil {
         fmt.Fprintln(os.Stderr, err)
         return
@@ -54,7 +54,7 @@ func StorePaste(cfg *configure.Config, in *message.InboundMsg, actions *Actions)
     name := strings.TrimSpace(in.MsgArgs[1])
     content := strings.TrimSpace(in.MsgArgs[1])
 
-    db, err := gorm.Open("sqlite3", dbFile)
+    db, err := gorm.Open("sqlite3", dbPasteFile)
     if err != nil {
         actions.Say("couldn't open paste database")
         fmt.Fprintln(os.Stderr, err)
@@ -89,7 +89,7 @@ func GetPaste(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
         return
     }
 
-    db, err := gorm.Open("sqlite3", dbFile)
+    db, err := gorm.Open("sqlite3", dbPasteFile)
     if err != nil {
         actions.Say("couldn't open pastes database")
         fmt.Fprintln(os.Stderr, err)

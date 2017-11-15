@@ -48,6 +48,9 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			cmdMap["slam"] = &CommandModule{ConfigSlam, HelpSlam, Slam}
 		case "compliment":
 			cmdMap["compliment"] = &CommandModule{ConfigCompliment, HelpCompliment, GiveCompliment}
+                case "paste":
+                        cmdMap["paste"] = &CommandModule{nil, HelpGetPaste, GetPaste}
+                        cmdMap["store"] = &CommandModule{nil, HelpStorePaste, StorePaste}
 		case "quit":
 			cmdMap["quit"] = &CommandModule{nil, HelpQuit, Quit}
 		case "quote":
@@ -63,9 +66,6 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 					nil,
 				},
 			)
-                case "paste":
-                        cmdMap["paste"] = &CommandModule{nil, HelpGetPaste, GetPaste}
-                        cmdMap["store"] = &CommandModule{nil, HelpStorePaste, StorePaste}
 		case "say":
 			cmdMap["say"] = &CommandModule{nil, HelpSay, Say}
 		case "urban":
