@@ -83,7 +83,6 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			cmdMap["doom"] = &CommandModule{nil, HelpDoom, Doom}
                 case "paste":
                         cmdMap["paste"] = &CommandModule{ConfigPaste, HelpGetPaste, GetPaste}
-                        cmdMap["store"] = &CommandModule{ConfigPaste, HelpStorePaste, StorePaste}
 		default:
 			return fmt.Errorf("invalid name '%s' in module config", moduleName)
 		}

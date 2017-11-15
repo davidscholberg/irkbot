@@ -31,51 +31,9 @@ func ConfigPaste(cfg *configure.Config) {
     db.AutoMigrate(&Paste{})
 }
 
-func HelpStorePaste() []string {
-    s := "store <name> <content> - store the <content> as <name> in the pastes database"
-    return []string{s}
-}
-
 func HelpGetPaste() []string {
     s := "paste <name> - Paste the <name>d content from the paste database"
     return []string{s}
-}
-
-func StorePaste(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
-    if len(in.MsgArgs) < 3 {
-        actions.Say(
-            fmt.Sprintf(
-                "%s: you must specify the <name> and <content> of a paste to store",
-                in.Event.Nick,
-            ),
-        )
-        return
-    }
-    name := strings.TrimSpace(in.MsgArgs[1])
-    content := strings.TrimSpace(in.MsgArgs[2])
-
-    db, err := gorm.Open("sqlite3", dbPasteFile)
-    if err != nil {
-        actions.Say("couldn't open paste database")
-        fmt.Fprintln(os.Stderr, err)
-        return
-    }
-    defer db.Close()
-    search := []Paste{}
-    db.Find(&search, Paste{Name: name})
-    if len(search) != 0 {
-        actions.Say(
-            fmt.Sprintf(
-                "%s: Paste %s already exists.",
-                in.Event.Nick,
-                name,
-            ),
-        )
-        return
-    }
-    db.Create(&Paste{Name: name, Text: content})
-    actions.Say(fmt.Sprintf("%s: stored paste %s", in.Event.Nick, name))
-    return
 }
 
 func GetPaste(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
@@ -113,11 +71,13 @@ func GetPaste(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
     }
 
     output := paste[0]
-    msg := fmt.Sprintf(
-        "%s",
-        output.Text,
-    )
-    actions.Say(msg)
-
+    splat := strings.Split(output.Text, "\n")
+    for _, k := range splat {
+        msg := fmt.Sprintf(
+            "%s",
+            k,
+        )
+        actions.Say(msg)
+    }
     return
 }
