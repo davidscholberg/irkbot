@@ -56,7 +56,7 @@ func StorePaste(cfg *configure.Config, in *message.InboundMsg, actions *Actions)
 
     db, err := gorm.Open("sqlite3", dbFile)
     if err != nil {
-        actions.Say("couldn't open quotes database")
+        actions.Say("couldn't open paste database")
         fmt.Fprintln(os.Stderr, err)
         return
     }
