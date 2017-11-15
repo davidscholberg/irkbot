@@ -63,6 +63,9 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 					nil,
 				},
 			)
+                case "paste":
+                        cmdMap["paste"] = &CommandModule{nil, HelpGetPaste, GetPaste}
+                        cmdMap["store"] = &CommandModule{nil, HelpStorePaste, StorePaste}
 		case "say":
 			cmdMap["say"] = &CommandModule{nil, HelpSay, Say}
 		case "urban":
