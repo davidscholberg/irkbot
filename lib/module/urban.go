@@ -3,8 +3,8 @@ package module
 import (
 	"fmt"
 	"github.com/davidscholberg/go-urbandict"
-	"github.com/davidscholberg/irkbot/lib/configure"
-	"github.com/davidscholberg/irkbot/lib/message"
+	"github.com/jholtom/irkbot/lib/configure"
+	"github.com/jholtom/irkbot/lib/message"
 	"strings"
 )
 

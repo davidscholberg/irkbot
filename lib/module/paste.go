@@ -2,8 +2,8 @@ package module
 
 import (
     "fmt"
-    "github.com/davidscholberg/irkbot/lib/configure"
-    "github.com/davidscholberg/irkbot/lib/message"
+    "github.com/jholtom/irkbot/lib/configure"
+    "github.com/jholtom/irkbot/lib/message"
     "github.com/jinzhu/gorm"
     _ "github.com/jinzhu/gorm/dialects/sqlite"
     "os"
@@ -52,7 +52,7 @@ func StorePaste(cfg *configure.Config, in *message.InboundMsg, actions *Actions)
         return
     }
     name := strings.TrimSpace(in.MsgArgs[1])
-    content := strings.TrimSpace(in.MsgArgs[1])
+    content := strings.TrimSpace(in.MsgArgs[2])
 
     db, err := gorm.Open("sqlite3", dbPasteFile)
     if err != nil {

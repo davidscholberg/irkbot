@@ -1,9 +1,9 @@
 package connection
 
 import (
-	"github.com/davidscholberg/irkbot/lib/configure"
-	"github.com/davidscholberg/irkbot/lib/message"
-	"github.com/davidscholberg/irkbot/lib/module"
+	"github.com/jholtom/irkbot/lib/configure"
+	"github.com/jholtom/irkbot/lib/message"
+	"github.com/jholtom/irkbot/lib/module"
 	"github.com/thoj/go-ircevent"
 	"time"
 )

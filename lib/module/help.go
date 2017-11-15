@@ -2,8 +2,8 @@ package module
 
 import (
 	"fmt"
-	"github.com/davidscholberg/irkbot/lib/configure"
-	"github.com/davidscholberg/irkbot/lib/message"
+	"github.com/jholtom/irkbot/lib/configure"
+	"github.com/jholtom/irkbot/lib/message"
 	"strings"
 )
 
@@ -28,7 +28,7 @@ func Help(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	}
 
 	actions.SayTo(nick, "Hello! I am an Irkbot instance - "+
-		"https://github.com/davidscholberg/irkbot")
+		"https://github.com/jholtom/irkbot")
 	actions.SayTo(nick, "Here's my list of commands:")
 
 	for _, s := range helpMsgs {
