@@ -1,8 +1,8 @@
 package module
 
 import (
-	"github.com/dvdmuckle/irkbot/lib/configure"
-	"github.com/dvdmuckle/irkbot/lib/message"
+	"github.com/davidscholberg/irkbot/lib/configure"
+	"github.com/davidscholberg/irkbot/lib/message"
 )
 
 func HelpLenny() []string {

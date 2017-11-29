@@ -1,9 +1,9 @@
 package connection
 
 import (
-	"github.com/dvdmuckle/irkbot/lib/configure"
-	"github.com/dvdmuckle/irkbot/lib/message"
-	"github.com/dvdmuckle/irkbot/lib/module"
+	"github.com/davidscholberg/irkbot/lib/configure"
+	"github.com/davidscholberg/irkbot/lib/message"
+	"github.com/davidscholberg/irkbot/lib/module"
 	"github.com/thoj/go-ircevent"
 	"time"
 )
