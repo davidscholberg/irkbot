@@ -2,8 +2,8 @@ package module
 
 import (
 	"fmt"
-	"github.com/davidscholberg/irkbot/lib/configure"
-	"github.com/davidscholberg/irkbot/lib/message"
+	"github.com/dvdmuckle/irkbot/lib/configure"
+	"github.com/dvdmuckle/irkbot/lib/message"
 	"golang.org/x/net/html"
 	"mvdan.cc/xurls"
 	"net"

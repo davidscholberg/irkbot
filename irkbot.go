@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/davidscholberg/irkbot/lib/configure"
-	"github.com/davidscholberg/irkbot/lib/connection"
+	"github.com/dvdmuckle/irkbot/lib/configure"
+	"github.com/dvdmuckle/irkbot/lib/connection"
 	"log"
 	"os"
 )
