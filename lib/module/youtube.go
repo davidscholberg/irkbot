@@ -45,7 +45,11 @@ func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	for _, item := range resp.Items {
 		switch item.Id.Kind {
 		case "youtube#video":
-			video = fmt.Sprintf("https://www.youtube.com/watch?v=%s", item.Id.VideoId)
+			video = fmt.Sprintf(
+				"%s - https://www.youtube.com/watch?v=%s",
+				item.Snippet.Title,
+				item.Id.VideoId,
+			)
 			break
 		}
 	}
