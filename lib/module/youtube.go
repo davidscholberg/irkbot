@@ -23,6 +23,11 @@ func HelpYoutube() []string {
 }
 
 func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+	if !strings.HasPrefix(in.Src, "#") {
+		actions.Say("youtube searches not allowed in PMs")
+		return
+	}
+
 	msg := strings.Join(in.MsgArgs[1:], " ")
 	//fetch API key from config
 	apiKey := cfg.Modules["youtube"]["api_key"]
