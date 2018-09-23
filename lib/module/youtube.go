@@ -46,7 +46,7 @@ func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		log.Printf("error performing youtube search: %v", err)
 		return
 	}
-	var video = ""
+	var video = "no results found! ¯\\_(ツ)_/¯"
 	for _, item := range resp.Items {
 		switch item.Id.Kind {
 		case "youtube#video":
