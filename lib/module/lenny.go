@@ -6,7 +6,7 @@ import (
 )
 
 func HelpLenny() []string {
-	s := "lenny - you know what this does"
+	s := "lenny - ( ͡° ͜ʖ ͡°)"
 	return []string{s}
 }
 
