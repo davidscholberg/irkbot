@@ -61,6 +61,8 @@ modules:
     urban_wotd:
     urban_trending:
     url:
+    youtube:
+        api_key: key
 ```
 
 ### Usage

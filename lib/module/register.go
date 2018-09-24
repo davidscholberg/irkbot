@@ -81,6 +81,8 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			cmdMap["doing"] = &CommandModule{ConfigDoing, HelpDoing, Doing}
 		case "doom":
 			cmdMap["doom"] = &CommandModule{nil, HelpDoom, Doom}
+		case "youtube":
+			cmdMap["yt"] = &CommandModule{nil, HelpYoutube, Youtube}
 		case "lenny":
 			cmdMap["lenny"] = &CommandModule{nil, HelpLenny, Lenny}
 		default:
