@@ -39,6 +39,10 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 	tickerModules := []*TickerModule{}
 	for moduleName, _ := range cfg.Modules {
 		switch moduleName {
+		case "alias":
+			cmdMap["createalias"] = &CommandModule{nil, HelpCreateAlias, CreateAlias}
+			cmdMap["deletealias"] = &CommandModule{nil, HelpDeleteAlias, DeleteAlias}
+			parserModules = append(parserModules, &ParserModule{ConfigAlias, CheckAliases})
 		case "echo_name":
 			parserModules = append(parserModules, &ParserModule{nil, EchoName})
 		case "help":
