@@ -42,6 +42,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		case "alias":
 			cmdMap["createalias"] = &CommandModule{nil, HelpCreateAlias, CreateAlias}
 			cmdMap["deletealias"] = &CommandModule{nil, HelpDeleteAlias, DeleteAlias}
+			cmdMap["listaliases"] = &CommandModule{nil, HelpListAliases, ListAliases}
 			parserModules = append(parserModules, &ParserModule{ConfigAlias, CheckAliases})
 		case "echo_name":
 			parserModules = append(parserModules, &ParserModule{nil, EchoName})

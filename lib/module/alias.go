@@ -41,6 +41,11 @@ func HelpDeleteAlias() []string {
 	return []string{s}
 }
 
+func HelpListAliases() []string {
+	s := "listaliases - list all aliases"
+	return []string{s}
+}
+
 func GetAliasDB(cfg *configure.Config) (*gorm.DB, error) {
 	dbFile := cfg.Modules["alias"]["db_file"]
 	return gorm.Open("sqlite3", dbFile)
@@ -137,4 +142,30 @@ func DeleteAlias(cfg *configure.Config, in *message.InboundMsg, actions *Actions
 
 	db.Delete(&alias)
 	actions.Say(fmt.Sprintf("%s: alias \"%s\" deleted", in.Event.Nick, aliasName))
+}
+
+func ListAliases(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+	db, err := GetAliasDB(cfg)
+	if err != nil {
+		actions.Say("couldn't open alias database")
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	defer db.Close()
+
+	aliases := []Alias{}
+	db.Select("name").Find(&aliases)
+
+	if len(aliases) == 0 {
+		actions.Say(fmt.Sprintf("%s: no aliases found", in.Event.Nick))
+		return
+	}
+
+	aliasesStrings := []string{}
+	for _, alias := range aliases {
+		aliasesStrings = append(aliasesStrings, alias.Name)
+	}
+	aliasesString := strings.Join(aliasesStrings, ", ")
+
+	actions.Say(fmt.Sprintf("%s: current list of aliases: %s", in.Event.Nick, aliasesString))
 }
