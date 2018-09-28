@@ -39,6 +39,11 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 	tickerModules := []*TickerModule{}
 	for moduleName, _ := range cfg.Modules {
 		switch moduleName {
+		case "alias":
+			cmdMap["createalias"] = &CommandModule{nil, HelpCreateAlias, CreateAlias}
+			cmdMap["deletealias"] = &CommandModule{nil, HelpDeleteAlias, DeleteAlias}
+			cmdMap["listaliases"] = &CommandModule{nil, HelpListAliases, ListAliases}
+			parserModules = append(parserModules, &ParserModule{ConfigAlias, CheckAliases})
 		case "echo_name":
 			parserModules = append(parserModules, &ParserModule{nil, EchoName})
 		case "help":
@@ -83,10 +88,6 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			cmdMap["doom"] = &CommandModule{nil, HelpDoom, Doom}
 		case "youtube":
 			cmdMap["yt"] = &CommandModule{nil, HelpYoutube, Youtube}
-		case "lenny":
-			cmdMap["lenny"] = &CommandModule{nil, HelpLenny, Lenny}
-		case "shrug":
-			cmdMap["shrug"] = &CommandModule{nil, HelpShrug, Shrug}
 		default:
 			return fmt.Errorf("invalid name '%s' in module config", moduleName)
 		}
