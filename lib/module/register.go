@@ -2,8 +2,8 @@ package module
 
 import (
 	"fmt"
-	"github.com/davidscholberg/irkbot/lib/configure"
-	"github.com/davidscholberg/irkbot/lib/message"
+	"github.com/lycurgus/irkbot/lib/configure"
+	"github.com/lycurgus/irkbot/lib/message"
 	"github.com/thoj/go-ircevent"
 	"strings"
 	"time"
@@ -88,6 +88,10 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			cmdMap["doom"] = &CommandModule{nil, HelpDoom, Doom}
 		case "youtube":
 			cmdMap["yt"] = &CommandModule{nil, HelpYoutube, Youtube}
+		case "features":
+			cmdMap["features"] = &CommandModule{ConfigFeature, HelpGetFeatures, GetFeatures}
+			cmdMap["featurerequest"] = &CommandModule{ConfigFeature, HelpRequestFeature, RequestFeature}
+			cmdMap["featuredone"] = &CommandModule{ConfigFeature, HelpMarkFeature, MarkFeatureDone}
 		default:
 			return fmt.Errorf("invalid name '%s' in module config", moduleName)
 		}
@@ -101,7 +105,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			m.Configure(cfg)
 		}
 	}
-	SortHelp();
+	SortHelp()
 
 	for _, m := range parserModules {
 		if m.Configure != nil {
