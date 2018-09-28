@@ -44,6 +44,9 @@ admin:
 # This is a list of modules that irkbot supports. If you omit any of these, they
 # will not be loaded at runtime.
 modules:
+    alias:
+        # This is the location of the sqlite database used by the alias module.
+        db_file: /home/david/var/irkbot/alias.db
     echo_name:
     help:
     slam:
@@ -61,6 +64,8 @@ modules:
     urban_wotd:
     urban_trending:
     url:
+    youtube:
+        api_key: key
 ```
 
 ### Usage
