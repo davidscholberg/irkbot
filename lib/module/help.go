@@ -5,6 +5,7 @@ import (
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
 	"strings"
+	"sort"
 )
 
 var helpMsgs []string
@@ -12,6 +13,11 @@ var helpMsgs []string
 // RegisterHelp allows modules to define help strings to be displayed on command.
 func RegisterHelp(s []string) {
 	helpMsgs = append(helpMsgs, s...)
+}
+
+func SortHelp() {
+	sort.Strings(helpMsgs)
+	return
 }
 
 // Help displays help for all bot commands.
