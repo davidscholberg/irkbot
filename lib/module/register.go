@@ -2,8 +2,8 @@ package module
 
 import (
 	"fmt"
-	"github.com/lycurgus/irkbot/lib/configure"
-	"github.com/lycurgus/irkbot/lib/message"
+	"github.com/davidscholberg/irkbot/lib/configure"
+	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/thoj/go-ircevent"
 	"strings"
 	"time"
