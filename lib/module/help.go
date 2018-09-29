@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
-	"strings"
 	"sort"
+	"strings"
 )
 
 var helpMsgs []string
