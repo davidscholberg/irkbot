@@ -2,10 +2,10 @@ package module
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"os"
 	"strconv"
 	"strings"
@@ -118,10 +118,10 @@ func HelpMarkFeature() []string {
 }
 
 func MarkFeatureDone(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
-        if in.Event.Nick != cfg.Admin.Owner {
-                actions.Say("%s: who are you, again?", in.Event.Nick)
-                return
-        }
+	if in.Event.Nick != cfg.Admin.Owner {
+		actions.Say("%s: who are you, again?", in.Event.Nick)
+		return
+	}
 	db, err := gorm.Open("sqlite3", dbFile)
 	if err != nil {
 		actions.Say("couldn't open quotes database")
