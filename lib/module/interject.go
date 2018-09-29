@@ -18,7 +18,7 @@ func Interject(cfg *configure.Config, in *message.InboundMsg, actions *Actions) 
 	if len(in.MsgArgs[1:]) > 0 {
 		interMsg = strings.Join(in.MsgArgs[1:], " ")
 	}
-	msg := fmt.Sprintf("I'd just like to interject for a moment. What you're refering"+
+	msg := fmt.Sprintf("I'd just like to interject for a moment. What you're referring"+
 		" to as %s, is in fact, GNU *slash* %s, or as I've recently taken to calling it, GNU *plus* %s.", interMsg, interMsg, interMsg)
 	actions.Say(msg)
 }

@@ -50,7 +50,7 @@ func parseString(bodyString string) (string, error) {
 
 //Method called on xkcd command, named funky so as not to collide with xkcd-go
 func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
-	comicMsg := "enter a search term, dipstick"
+	comicMsg := "enter a search term plz"
 	//If no search term, gently remind the user to input one
 	if len(in.MsgArgs[1:]) == 0 {
 		actions.Say(comicMsg)

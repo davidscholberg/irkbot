@@ -101,7 +101,7 @@ func GrabQuote(cfg *configure.Config, in *message.InboundMsg, actions *Actions) 
 	if !strings.HasPrefix(in.Src, "#") {
 		actions.Say(
 			fmt.Sprintf(
-				"%s: you can't grab a quote in a PM, doofus",
+				"%s: you can't grab a quote in a PM :O",
 				in.Event.Nick,
 			),
 		)
@@ -111,7 +111,7 @@ func GrabQuote(cfg *configure.Config, in *message.InboundMsg, actions *Actions) 
 	if len(in.MsgArgs) < 2 {
 		actions.Say(
 			fmt.Sprintf(
-				"%s: you need to specify a nick, dingus",
+				"%s: plz specify a nick",
 				in.Event.Nick,
 			),
 		)
@@ -123,7 +123,7 @@ func GrabQuote(cfg *configure.Config, in *message.InboundMsg, actions *Actions) 
 	if in.Event.Nick == quotee {
 		actions.Say(
 			fmt.Sprintf(
-				"%s: you can't grab your own quotes, you narcissistic fool",
+				"%s: you can't grab your own quotes :O",
 				in.Event.Nick,
 			),
 		)
@@ -167,7 +167,7 @@ func GetQuote(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	if len(in.MsgArgs) < 2 {
 		actions.Say(
 			fmt.Sprintf(
-				"%s: you need to specify a nick, dingus",
+				"%s: plz specify a nick",
 				in.Event.Nick,
 			),
 		)

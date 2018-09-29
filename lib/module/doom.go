@@ -29,7 +29,7 @@ func HelpDoom() []string {
 
 func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	if len(in.MsgArgs[1:]) == 0 {
-		actions.Say("enter a command, dipstick")
+		actions.Say("enter a command plz")
 		return
 	}
 	doomCommand := strings.Join(in.MsgArgs[1:], " ")

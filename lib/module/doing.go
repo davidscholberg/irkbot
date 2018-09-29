@@ -13,7 +13,7 @@ func ConfigDoing(cfg *configure.Config) {
 	rand.Seed(time.Now().Unix())
 }
 func HelpDoing() []string {
-	s := "doing [subject] - sun is not doing, [subject] is doing; defaults to linux"
+	s := "doing [subject] - sun is not doing, [subject] is doing; defaults to command invoker"
 	return []string{s}
 }
 
@@ -25,7 +25,7 @@ func Doing(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		"moon is",
 		"planets are",
 		"galaxies are"}
-	doingSub := "linux"
+	doingSub := in.Event.Nick
 	if len(in.MsgArgs[1:]) > 0 {
 		doingSub = strings.Join(in.MsgArgs[1:], " ")
 	}
