@@ -101,6 +101,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			m.Configure(cfg)
 		}
 	}
+	SortHelp();
 
 	for _, m := range parserModules {
 		if m.Configure != nil {

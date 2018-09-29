@@ -180,7 +180,6 @@ docker run --rm --volume irkbot-data-vol:/srv/db/irkbot --volume irkbot-config-v
 
 ### TODO
 
-* Alphabetize help string array.
 * Make reddit module.
 * Allow multiple channels.
 * Add time-based modules.
