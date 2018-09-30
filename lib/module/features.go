@@ -42,7 +42,7 @@ func RequestFeature(cfg *configure.Config, in *message.InboundMsg, actions *Acti
 	if len(in.MsgArgs) < 2 {
 		actions.Say(
 			fmt.Sprintf(
-				"%s: you need to include a feature, Einstein",
+				"%s: you need to include a feature string!",
 				in.Event.Nick,
 			),
 		)
@@ -133,7 +133,7 @@ func MarkFeatureDone(cfg *configure.Config, in *message.InboundMsg, actions *Act
 	featureIdU32, err := strconv.ParseUint(strings.TrimSpace(in.MsgArgs[1]), 10, 32)
 	featureId := uint(featureIdU32)
 	if err != nil {
-		actions.Say("that's not a number, weirdo")
+		actions.Say("that's not a number... it needs to be an integer")
 		return
 	}
 
