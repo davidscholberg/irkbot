@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	urllib "net/url"
+	"os"
 	"strings"
 )
 
@@ -19,14 +20,17 @@ func Url(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
 	for _, urlStr := range urls {
 		url, err := urllib.Parse(urlStr)
 		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
-		if v, _ := validateUrl(url); !v {
+		if v, err := validateUrl(url); !v {
+			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
 		host := url.Host
 		title, err := getHtmlTitle(urlStr)
 		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
 		title = strings.Replace(title, "\n", "", -1)

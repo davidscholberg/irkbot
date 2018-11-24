@@ -6,8 +6,8 @@ import (
 	"github.com/davidscholberg/irkbot/lib/message"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
-	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -37,13 +37,15 @@ func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	}
 	service, err := youtube.New(client)
 	if err != nil {
-		log.Printf("error creating youtube client: %v", err)
+		fmt.Fprintf(os.Stderr, "error creating youtube client: %v", err)
+		actions.Say("error creating youtube client")
 		return
 	}
 	call := service.Search.List("id,snippet").Q(msg).MaxResults(1)
 	resp, err := call.Do()
 	if err != nil {
-		log.Printf("error performing youtube search: %v", err)
+		fmt.Fprintf(os.Stderr, "error performing youtube search: %v", err)
+		actions.Say("error performing youtube search")
 		return
 	}
 	var video = "no results found! ¯\\_(ツ)_/¯"

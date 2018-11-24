@@ -5,6 +5,7 @@ import (
 	"github.com/davidscholberg/go-urbandict"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
+	"os"
 	"strings"
 )
 
@@ -55,7 +56,8 @@ func showSearchResult(in *message.InboundMsg, actions *Actions) {
 		isRandom = false
 	}
 	if err != nil {
-		actions.Say(fmt.Sprintf("%s: %s", nick, err.Error()))
+		fmt.Fprintln(os.Stderr, err)
+		actions.Say("error: couldn't get search result")
 		return
 	}
 
@@ -78,7 +80,8 @@ func showDefinition(in *message.InboundMsg, actions *Actions, isWotd bool) {
 		def, err = urbandict.Define(strings.Join(in.MsgArgs[1:], " "))
 	}
 	if err != nil {
-		actions.Say(fmt.Sprintf("%s: %s", nick, err.Error()))
+		fmt.Fprintln(os.Stderr, err)
+		actions.Say("error: couldn't get definition")
 		return
 	}
 
@@ -104,7 +107,8 @@ func showTrending(in *message.InboundMsg, actions *Actions) {
 
 	trendingWords, err := urbandict.Trending()
 	if err != nil {
-		actions.Say(fmt.Sprintf("%s: %s", nick, err.Error()))
+		fmt.Fprintln(os.Stderr, err)
+		actions.Say("error: couldn't get trending list")
 		return
 	}
 
