@@ -20,6 +20,11 @@ func Weather(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		return
 	}
 
+	if len(in.MsgArgs) < 2 {
+		actions.Say(fmt.Sprintf("%s: please specify a location (<city> or <city,country>)", in.Event.Nick))
+		return
+	}
+
 	msg := strings.Join(in.MsgArgs[1:], " ")
 	//fetch API key from config
 	apiKey := cfg.Modules["weather"]["api_key"]
