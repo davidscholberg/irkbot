@@ -5,6 +5,7 @@ import (
 	"github.com/briandowns/openweathermap"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
+	"math"
 	"os"
 	"strings"
 )
@@ -53,12 +54,19 @@ func Weather(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 
 	actions.Say(
 		fmt.Sprintf(
-			"current weather for %s, %s: %.2f°C, %d%% humidity, %s",
+			"current weather for %s, %s: %.2f°C, %d%% humidity, wind %s at %.2fm/s, %s",
 			w.Name,
 			w.Sys.Country,
 			w.Main.Temp,
 			w.Main.Humidity,
+			degreeToCompassDir(w.Wind.Deg),
+			w.Wind.Speed,
 			conditions,
 		),
 	)
+}
+
+func degreeToCompassDir(degree float64) string {
+	compassDirs := [8]string{"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
+	return compassDirs[int(math.Floor((degree+22.5)/45))%8]
 }
