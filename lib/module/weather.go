@@ -54,7 +54,7 @@ func Weather(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 
 	actions.Say(
 		fmt.Sprintf(
-			"current weather for %s, %s: %.2f°C, %d%% humidity, wind %s at %.2fm/s, %s",
+			"current weather for %s, %s: %.0f°C, %d%% humidity, wind %s at %.0fm/s, %s",
 			w.Name,
 			w.Sys.Country,
 			w.Main.Temp,
