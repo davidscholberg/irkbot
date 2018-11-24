@@ -64,6 +64,9 @@ modules:
     urban_wotd:
     urban_trending:
     url:
+    # the weather module uses the OpenWeatherMap API
+    weather:
+        api_key: key
     youtube:
         api_key: key
 ```
