@@ -10,7 +10,7 @@ import (
 )
 
 func HelpWeather() []string {
-	s := "weather <location> - display current weather for the given location"
+	s := "weather <location> - display current weather for the given location (only <city> or <city,country> searches are supported)"
 	return []string{s}
 }
 
@@ -33,7 +33,7 @@ func Weather(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 
 	err = w.CurrentByName(msg)
 	if err != nil {
-		actions.Say("no results returned :(")
+		actions.Say("No results returned. Only <city> or <city,country> searches are supported.")
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
