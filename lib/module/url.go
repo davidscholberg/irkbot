@@ -33,8 +33,12 @@ func Url(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
 			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
-		title = strings.Replace(title, "\n", "", -1)
-		title = strings.Replace(title, "\r", "", -1)
+		// split string by newline characters
+		titleFields := strings.FieldsFunc(title, func(c rune) bool {
+			return c == '\n' || c == '\r'
+		})
+		// join by newline separator
+		title = strings.Join(titleFields, " / ")
 		title = strings.TrimSpace(title)
 		actions.Say(fmt.Sprintf("^ %s - [%s]", title, host))
 	}
