@@ -37,14 +37,14 @@ func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	}
 	service, err := youtube.New(client)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error creating youtube client: %v", err)
+		fmt.Fprintf(os.Stderr, "error creating youtube client: %v\n", err)
 		actions.Say("error creating youtube client")
 		return
 	}
 	call := service.Search.List("id,snippet").Q(msg).MaxResults(1).Type("video")
 	resp, err := call.Do()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error performing youtube search: %v", err)
+		fmt.Fprintf(os.Stderr, "error performing youtube search: %v\n", err)
 		actions.Say("error performing youtube search")
 		return
 	}

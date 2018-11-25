@@ -85,7 +85,7 @@ func GetCleanQuoteBufferDuration(cfg *configure.Config) time.Duration {
 	}
 	seconds, err := strconv.Atoi(secondsStr)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s, using default time of 600 seconds", err)
+		fmt.Fprintf(os.Stderr, "error: %s, using default time of 600 seconds\n", err)
 		seconds = 600
 	}
 	return time.Second * time.Duration(seconds)
