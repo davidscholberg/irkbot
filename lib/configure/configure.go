@@ -35,6 +35,9 @@ type Config struct {
 		Owner       string `yaml:"owner"`
 		DenyMessage string `yaml:"deny_message"`
 	} `yaml:"admin"`
+	Http struct {
+		ResponseSizeLimit int64 `yaml:"response_size_limit"`
+	} `yaml:"http"`
 	Modules map[string]map[string]string `yaml:"modules"`
 }
 
