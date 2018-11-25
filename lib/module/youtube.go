@@ -41,7 +41,7 @@ func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		actions.Say("error creating youtube client")
 		return
 	}
-	call := service.Search.List("id,snippet").Q(msg).MaxResults(1)
+	call := service.Search.List("id,snippet").Q(msg).MaxResults(1).Type("video")
 	resp, err := call.Do()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error performing youtube search: %v", err)
