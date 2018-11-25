@@ -5,6 +5,7 @@ import (
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
 	"golang.org/x/net/html"
+	"io"
 	"mvdan.cc/xurls"
 	"net"
 	"net/http"
@@ -28,7 +29,7 @@ func Url(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
 			continue
 		}
 		host := url.Host
-		title, err := getHtmlTitle(urlStr)
+		title, err := getHtmlTitle(urlStr, cfg.Http.ResponseSizeLimit)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			continue
@@ -95,7 +96,7 @@ func isCidrMatch(ip *net.IP, subnets []string) (bool, error) {
 }
 
 // getHtmlTitle returns the HTML title found at the given URL.
-func getHtmlTitle(url string) (string, error) {
+func getHtmlTitle(url string, responseSizeLimit int64) (string, error) {
 	response, err := http.Get(url)
 	if err != nil {
 		return "", err
@@ -107,7 +108,7 @@ func getHtmlTitle(url string) (string, error) {
 		return "", fmt.Errorf("received status %d", response.StatusCode)
 	}
 
-	doctree, err := html.Parse(response.Body)
+	doctree, err := html.Parse(io.LimitReader(response.Body, responseSizeLimit))
 	if err != nil {
 		return "", err
 	}

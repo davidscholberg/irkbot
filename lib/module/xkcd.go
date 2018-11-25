@@ -5,6 +5,7 @@ import (
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/nishanths/go-xkcd"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -21,13 +22,13 @@ func Helpxkcd() []string {
 }
 
 //Perform the actual GET and return the resulting body as a string
-func get(apiURL string) (string, error) {
+func get(apiURL string, responseSizeLimit int64) (string, error) {
 	response, err := http.Get(apiURL)
 	if err != nil {
 		return "", err
 	}
 	defer response.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(response.Body)
+	bodyBytes, err := ioutil.ReadAll(io.LimitReader(response.Body, responseSizeLimit))
 	if err != nil {
 		return "", err
 	}
@@ -61,7 +62,7 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	search := strings.Join(in.MsgArgs[1:], " ")
 	query.Add("query", search)
 	apiUrl := fmt.Sprintf(apiUrlFmtDefine, query.Encode())
-	comicString, comicErr := get(apiUrl)
+	comicString, comicErr := get(apiUrl, cfg.Http.ResponseSizeLimit)
 	if comicErr != nil {
 		fmt.Fprintln(os.Stderr, comicErr)
 		actions.Say("something borked, try again")
