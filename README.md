@@ -181,3 +181,7 @@ Now we can create a container to run Irkbot in.
 ```bash
 docker run --rm --volume irkbot-data-vol:/srv/db/irkbot --volume irkbot-config-vol:/root/.config/irkbot irkbot
 ```
+
+### Contributing
+
+PRs and issues for bug fixes and new features are welcome. If you'd like to make a new feature, please submit an issue for it first so that we can discuss requirements and implementation details beforehand.
