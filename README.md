@@ -181,10 +181,3 @@ Now we can create a container to run Irkbot in.
 ```bash
 docker run --rm --volume irkbot-data-vol:/srv/db/irkbot --volume irkbot-config-vol:/root/.config/irkbot irkbot
 ```
-
-### TODO
-
-* Make reddit module.
-* Allow multiple channels.
-* Add time-based modules.
-* Implement max message length handling.

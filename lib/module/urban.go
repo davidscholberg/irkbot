@@ -85,8 +85,6 @@ func showDefinition(in *message.InboundMsg, actions *Actions, isWotd bool) {
 		return
 	}
 
-	// TODO: implement max message length handling
-
 	if isWotd {
 		actions.Say(fmt.Sprintf("%s: Word of the day: \"%s\"", nick, def.Word))
 	} else {
