@@ -32,6 +32,7 @@ channel:
     channel_name: "#blahblah"
     greeting: "oh hai"
     cmd_prefix: "!"
+    auto_join_on_kick: False
 
 connection:
     verbose_callback_handler: False
