@@ -111,13 +111,13 @@ import (
 	"strings"
 )
 
-func ConfigEcho(cfg *configure.Config) {
+func configEcho(cfg *configure.Config) {
 	// This is an optional function to configure the module. It is called only
 	// once when irkbot starts up.
 	// This function can be omitted if no configuration is needed.
 }
 
-func HelpEcho() []string {
+func helpEcho() []string {
 	// This function returns an array of strings describing this command's
 	// functionality. It is displayed when someone gives the help command in a
 	// channel or private message.
@@ -125,12 +125,12 @@ func HelpEcho() []string {
 	return []string{s}
 }
 
-func Echo(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func echo(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	// Grab the rest of the message.
 	msg := strings.Join(in.MsgArgs[1:], " ")
 
 	// Call the Say function (which does message rate-limiting)
-	actions.Say(msg)
+	actions.say(msg)
 }
 ```
 
@@ -138,14 +138,14 @@ The final step is to add the echo module functions to the switch statement in th
 
 ```go
 		case "echo":
-			cmdMap["echo"] = &CommandModule{ConfigEcho, HelpEcho, Echo}
+			cmdMap["echo"] = &CommandModule{configEcho, helpEcho, echo}
 ```
 
 If you omit the config function, the register function call would be:
 
 ```go
 		case "echo":
-			cmdMap["echo"] = &CommandModule{nil, HelpEcho, Echo}
+			cmdMap["echo"] = &CommandModule{nil, helpEcho, echo}
 ```
 
 To enable the module, you'll need to add it to the `modules` section of the Irkbot configuration file.

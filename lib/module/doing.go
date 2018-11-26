@@ -9,15 +9,15 @@ import (
 	"time"
 )
 
-func ConfigDoing(cfg *configure.Config) {
+func configDoing(cfg *configure.Config) {
 	rand.Seed(time.Now().Unix())
 }
-func HelpDoing() []string {
+func helpDoing() []string {
 	s := "doing [subject] - sun is not doing, [subject] is doing; defaults to command invoker"
 	return []string{s}
 }
 
-func Doing(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func doing(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	doingNot := [...]string{
 		"sun is",
 		"stars are",
@@ -30,5 +30,5 @@ func Doing(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		doingSub = strings.Join(in.MsgArgs[1:], " ")
 	}
 	msg := fmt.Sprintf("%s not doing, %s is doing", doingNot[rand.Intn(len(doingNot))], doingSub)
-	actions.Say(msg)
+	actions.say(msg)
 }

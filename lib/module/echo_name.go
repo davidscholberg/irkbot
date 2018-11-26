@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-func EchoName(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
+func echoName(cfg *configure.Config, in *message.InboundMsg, actions *actions) bool {
 	if !strings.HasPrefix(in.Msg, fmt.Sprintf("%s!", cfg.User.Nick)) {
 		return false
 	}
-	actions.Say(fmt.Sprintf("%s!", in.Event.Nick))
+	actions.say(fmt.Sprintf("%s!", in.Event.Nick))
 	return true
 }

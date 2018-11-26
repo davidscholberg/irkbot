@@ -17,7 +17,7 @@ import (
 
 const apiUrlFmtDefine = "https://relevantxkcd.appspot.com/process?%s"
 
-func Helpxkcd() []string {
+func helpxkcd() []string {
 	s := "xkcd <search> - find a xkcd comic relevant to the search term"
 	return []string{s}
 }
@@ -52,11 +52,11 @@ func parseString(bodyString string) (string, error) {
 }
 
 //Method called on xkcd command, named funky so as not to collide with xkcd-go
-func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	comicMsg := "enter a search term plz"
 	//If no search term, gently remind the user to input one
 	if len(in.MsgArgs[1:]) == 0 {
-		actions.Say(comicMsg)
+		actions.say(comicMsg)
 		return
 	}
 	query := url.Values{}
@@ -67,13 +67,13 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	comicString, comicErr := get(apiUrl, cfg.Http.ResponseSizeLimit, cfg.Http.Timeout)
 	if comicErr != nil {
 		fmt.Fprintln(os.Stderr, comicErr)
-		actions.Say("something borked, try again")
+		actions.say("something borked, try again")
 		return
 	}
 	comicNum, parseErr := parseString(comicString)
 	if parseErr != nil {
 		fmt.Fprintln(os.Stderr, parseErr)
-		actions.Say("something borked, try again")
+		actions.say("something borked, try again")
 		return
 	}
 	client := &xkcd.Client{
@@ -83,15 +83,15 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	i, strconvErr := strconv.Atoi(comicNum)
 	if strconvErr != nil {
 		fmt.Fprintln(os.Stderr, strconvErr)
-		actions.Say("something borked, try again")
+		actions.say("something borked, try again")
 		return
 	}
 	comicGet, err := client.Get(i)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		actions.Say("something borked, try again")
+		actions.say("something borked, try again")
 		return
 	}
 	comicMsg = fmt.Sprintf("%s - https://xkcd.com/%s/", comicGet.Title, comicNum)
-	actions.Say(comicMsg)
+	actions.say(comicMsg)
 }

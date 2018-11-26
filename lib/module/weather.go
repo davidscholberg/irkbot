@@ -12,19 +12,19 @@ import (
 	"time"
 )
 
-func HelpWeather() []string {
+func helpWeather() []string {
 	s := "weather <location> - display current weather for the given location (only <city> or <city,country> searches are supported)"
 	return []string{s}
 }
 
-func Weather(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func weather(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	if !strings.HasPrefix(in.Src, "#") {
-		actions.Say("weather searches not allowed in PMs")
+		actions.say("weather searches not allowed in PMs")
 		return
 	}
 
 	if len(in.MsgArgs) < 2 {
-		actions.Say(fmt.Sprintf("%s: please specify a location (<city> or <city,country>)", in.Event.Nick))
+		actions.say(fmt.Sprintf("%s: please specify a location (<city> or <city,country>)", in.Event.Nick))
 		return
 	}
 
@@ -40,14 +40,14 @@ func Weather(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		openweathermap.WithHttpClient(c),
 	)
 	if err != nil {
-		actions.Say("error initializing weather search :(")
+		actions.say("error initializing weather search :(")
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 
 	err = w.CurrentByName(msg)
 	if err != nil {
-		actions.Say("No results returned. Only <city> or <city,country> searches are supported.")
+		actions.say("No results returned. Only <city> or <city,country> searches are supported.")
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
@@ -60,7 +60,7 @@ func Weather(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		conditions += condition.Description
 	}
 
-	actions.Say(
+	actions.say(
 		fmt.Sprintf(
 			"current weather for %s, %s: %.0f°C, %d%% humidity, wind %s at %.0fm/s, %s",
 			w.Name,

@@ -12,20 +12,14 @@ import (
 	"time"
 )
 
-func ConfigYoutube(cfg *configure.Config) {
-	// This is an optional function to configure the module. It is called only
-	// once when irkbot starts up.
-	// This function can be omitted if no configuration is needed.
-}
-
-func HelpYoutube() []string {
+func helpYoutubeSearch() []string {
 	s := "yt <phrase> - search youtube for the given phrase and link the top result"
 	return []string{s}
 }
 
-func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func youtubeSearch(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	if !strings.HasPrefix(in.Src, "#") {
-		actions.Say("youtube searches not allowed in PMs")
+		actions.say("youtube searches not allowed in PMs")
 		return
 	}
 
@@ -40,14 +34,14 @@ func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	service, err := youtube.New(client)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error creating youtube client: %v\n", err)
-		actions.Say("error creating youtube client")
+		actions.say("error creating youtube client")
 		return
 	}
 	call := service.Search.List("id,snippet").Q(msg).MaxResults(1).Type("video")
 	resp, err := call.Do()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error performing youtube search: %v\n", err)
-		actions.Say("error performing youtube search")
+		actions.say("error performing youtube search")
 		return
 	}
 	var video = "no results found! ¯\\_(ツ)_/¯"
@@ -63,5 +57,5 @@ func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		}
 	}
 
-	actions.Say(video)
+	actions.say(video)
 }

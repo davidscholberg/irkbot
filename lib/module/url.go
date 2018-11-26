@@ -15,8 +15,8 @@ import (
 	"time"
 )
 
-// Url attempts to fetch the title of the HTML document returned by a URL
-func Url(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
+// parseUrls attempts to fetch the title of the HTML document returned by a URL
+func parseUrls(cfg *configure.Config, in *message.InboundMsg, actions *actions) bool {
 	urls := xurls.Strict().FindAllString(in.Msg, -1)
 
 	for _, urlStr := range urls {
@@ -42,7 +42,7 @@ func Url(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
 		// join by newline separator
 		title = strings.Join(titleFields, " / ")
 		title = strings.TrimSpace(title)
-		actions.Say(fmt.Sprintf("^ %s - [%s]", title, host))
+		actions.say(fmt.Sprintf("^ %s - [%s]", title, host))
 	}
 
 	// don't consume the message, in case there are commands in it
