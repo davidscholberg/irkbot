@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type doomStruct struct {
@@ -52,7 +53,8 @@ func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		actions.Say("something borked, try again")
 		return
 	}
-	resp, err := http.Post(doomHost, "application/json", bytes.NewReader(jsonValue))
+	c := &http.Client{Timeout: time.Duration(cfg.Http.Timeout) * time.Second}
+	resp, err := c.Post(doomHost, "application/json", bytes.NewReader(jsonValue))
 	if err != nil {
 		// handle err
 		fmt.Fprintln(os.Stderr, err)

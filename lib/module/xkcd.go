@@ -12,6 +12,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const apiUrlFmtDefine = "https://relevantxkcd.appspot.com/process?%s"
@@ -22,8 +23,9 @@ func Helpxkcd() []string {
 }
 
 //Perform the actual GET and return the resulting body as a string
-func get(apiURL string, responseSizeLimit int64) (string, error) {
-	response, err := http.Get(apiURL)
+func get(apiURL string, responseSizeLimit int64, timeout int64) (string, error) {
+	c := &http.Client{Timeout: time.Duration(timeout) * time.Second}
+	response, err := c.Get(apiURL)
 	if err != nil {
 		return "", err
 	}
@@ -62,7 +64,7 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	search := strings.Join(in.MsgArgs[1:], " ")
 	query.Add("query", search)
 	apiUrl := fmt.Sprintf(apiUrlFmtDefine, query.Encode())
-	comicString, comicErr := get(apiUrl, cfg.Http.ResponseSizeLimit)
+	comicString, comicErr := get(apiUrl, cfg.Http.ResponseSizeLimit, cfg.Http.Timeout)
 	if comicErr != nil {
 		fmt.Fprintln(os.Stderr, comicErr)
 		actions.Say("something borked, try again")
@@ -74,7 +76,10 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		actions.Say("something borked, try again")
 		return
 	}
-	client := xkcd.NewClient()
+	client := &xkcd.Client{
+		HTTPClient: &http.Client{Timeout: time.Duration(cfg.Http.Timeout) * time.Second},
+		Config:     xkcd.Config{UseHTTPS: true},
+	}
 	i, strconvErr := strconv.Atoi(comicNum)
 	if strconvErr != nil {
 		fmt.Fprintln(os.Stderr, strconvErr)

@@ -6,8 +6,10 @@ import (
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
 	"math"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 func HelpWeather() []string {
@@ -30,7 +32,13 @@ func Weather(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	//fetch API key from config
 	apiKey := cfg.Modules["weather"]["api_key"]
 
-	w, err := openweathermap.NewCurrent("c", "en", apiKey)
+	c := &http.Client{Timeout: time.Duration(cfg.Http.Timeout) * time.Second}
+	w, err := openweathermap.NewCurrent(
+		"c",
+		"en",
+		apiKey,
+		openweathermap.WithHttpClient(c),
+	)
 	if err != nil {
 		actions.Say("error initializing weather search :(")
 		fmt.Fprintln(os.Stderr, err)
