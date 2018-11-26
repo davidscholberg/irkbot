@@ -11,21 +11,21 @@ import (
 var helpMsgs []string
 
 // RegisterHelp allows modules to define help strings to be displayed on command.
-func RegisterHelp(s []string) {
+func registerHelp(s []string) {
 	helpMsgs = append(helpMsgs, s...)
 }
 
-func SortHelp() {
+func sortHelp() {
 	sort.Strings(helpMsgs)
 	return
 }
 
 // Help displays help for all bot commands.
-func Help(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func help(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	nick := in.Event.Nick
 
 	if strings.HasPrefix(in.Src, "#") {
-		actions.Say(
+		actions.say(
 			fmt.Sprintf(
 				"%s: check your PMs, fam",
 				nick,
@@ -33,21 +33,21 @@ func Help(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		)
 	}
 
-	actions.SayTo(nick, "Hello! I am an Irkbot instance - "+
+	actions.sayTo(nick, "Hello! I am an Irkbot instance - "+
 		"https://github.com/davidscholberg/irkbot")
-	actions.SayTo(nick, "Here's my list of commands:")
+	actions.sayTo(nick, "Here's my list of commands:")
 
 	for _, s := range helpMsgs {
-		actions.SayTo(nick, fmt.Sprintf("%s%s", cfg.Channel.CmdPrefix, s))
+		actions.sayTo(nick, fmt.Sprintf("%s%s", cfg.Channel.CmdPrefix, s))
 	}
 }
 
-func ParseHelp(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
+func parseHelp(cfg *configure.Config, in *message.InboundMsg, actions *actions) bool {
 	if strings.TrimSpace(in.Msg) != fmt.Sprintf("%s: help", cfg.User.Nick) {
 		return false
 	}
 
-	Help(cfg, in, actions)
+	help(cfg, in, actions)
 
 	return false
 }

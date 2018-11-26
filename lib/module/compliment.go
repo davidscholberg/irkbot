@@ -12,12 +12,12 @@ import (
 	"time"
 )
 
-type Compliment struct {
+type compliment struct {
 	ID   uint   `gorm:"primary_key"`
 	Text string `gorm:"unique_index:idx_compliment_text"`
 }
 
-func ConfigCompliment(cfg *configure.Config) {
+func configCompliment(cfg *configure.Config) {
 	dbFile := cfg.Modules["compliment"]["db_file"]
 
 	db, err := gorm.Open("sqlite3", dbFile)
@@ -27,34 +27,34 @@ func ConfigCompliment(cfg *configure.Config) {
 	}
 	defer db.Close()
 
-	db.AutoMigrate(&Compliment{})
+	db.AutoMigrate(&compliment{})
 
 	// seed rng
 	rand.Seed(time.Now().UnixNano())
 }
 
-func HelpCompliment() []string {
+func helpCompliment() []string {
 	s := "compliment [recipient] - give the recipient a compliment (or self if no recipient" +
 		" specified)"
 	return []string{s}
 }
 
-func GiveCompliment(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func giveCompliment(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	dbFile := cfg.Modules["compliment"]["db_file"]
 
 	db, err := gorm.Open("sqlite3", dbFile)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		actions.Say("error: couldn't open compliment database")
+		actions.say("error: couldn't open compliment database")
 		return
 	}
 	defer db.Close()
 
-	compliments := []Compliment{}
+	compliments := []compliment{}
 	db.Find(&compliments)
 
 	if len(compliments) == 0 {
-		actions.Say("error: no compliments found")
+		actions.say("error: no compliments found")
 		return
 	}
 
@@ -69,5 +69,5 @@ func GiveCompliment(cfg *configure.Config, in *message.InboundMsg, actions *Acti
 		compliments[rand.Intn(len(compliments))].Text,
 	)
 
-	actions.Say(response)
+	actions.say(response)
 }

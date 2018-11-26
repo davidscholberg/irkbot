@@ -11,14 +11,14 @@ import (
 	"time"
 )
 
-type Alias struct {
+type alias struct {
 	ID   uint   `gorm:"primary_key"`
 	Name string `gorm:"unique_index:idx_aliases_name"`
 	Text string
 	Date time.Time
 }
 
-func ConfigAlias(cfg *configure.Config) {
+func configAlias(cfg *configure.Config) {
 	dbFile := cfg.Modules["alias"]["db_file"]
 
 	db, err := gorm.Open("sqlite3", dbFile)
@@ -28,30 +28,30 @@ func ConfigAlias(cfg *configure.Config) {
 	}
 	defer db.Close()
 
-	db.AutoMigrate(&Alias{})
+	db.AutoMigrate(&alias{})
 }
 
-func HelpCreateAlias() []string {
+func helpCreateAlias() []string {
 	s := "createalias <alias-name> <alias-text> - create an alias, which will be treated as a command that returns the alias text"
 	return []string{s}
 }
 
-func HelpDeleteAlias() []string {
+func helpDeleteAlias() []string {
 	s := "deletealias <alias-name> - delete an alias"
 	return []string{s}
 }
 
-func HelpListAliases() []string {
+func helpListAliases() []string {
 	s := "listaliases - list all aliases"
 	return []string{s}
 }
 
-func GetAliasDB(cfg *configure.Config) (*gorm.DB, error) {
+func getAliasDB(cfg *configure.Config) (*gorm.DB, error) {
 	dbFile := cfg.Modules["alias"]["db_file"]
 	return gorm.Open("sqlite3", dbFile)
 }
 
-func CheckAliases(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
+func checkAliases(cfg *configure.Config, in *message.InboundMsg, actions *actions) bool {
 	cmdPrefix := cfg.Channel.CmdPrefix
 	if cmdPrefix == "" {
 		cmdPrefix = "."
@@ -61,103 +61,103 @@ func CheckAliases(cfg *configure.Config, in *message.InboundMsg, actions *Action
 	}
 	aliasName := strings.TrimPrefix(in.MsgArgs[0], cmdPrefix)
 
-	db, err := GetAliasDB(cfg)
+	db, err := getAliasDB(cfg)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return false
 	}
 	defer db.Close()
 
-	alias := Alias{}
-	db.First(&alias, Alias{Name: aliasName})
-	if len(alias.Text) == 0 {
+	aliasRow := alias{}
+	db.First(&aliasRow, alias{Name: aliasName})
+	if len(aliasRow.Text) == 0 {
 		return false
 	}
 
-	actions.Say(alias.Text)
+	actions.say(aliasRow.Text)
 
 	return false
 }
 
-func CreateAlias(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func createAlias(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	if in.Event.Nick != cfg.Admin.Owner {
-		actions.Say(fmt.Sprintf("%s: %s", in.Event.Nick, cfg.Admin.DenyMessage))
+		actions.say(fmt.Sprintf("%s: %s", in.Event.Nick, cfg.Admin.DenyMessage))
 		return
 	}
 
 	if len(in.MsgArgs) < 3 {
-		actions.Say(fmt.Sprintf("%s: usage: <alias-name> <alias-text>", in.Event.Nick))
+		actions.say(fmt.Sprintf("%s: usage: <alias-name> <alias-text>", in.Event.Nick))
 		return
 	}
 
 	aliasName := strings.TrimSpace(in.MsgArgs[1])
 	aliasText := strings.Join(in.MsgArgs[2:], " ")
 
-	db, err := GetAliasDB(cfg)
+	db, err := getAliasDB(cfg)
 	if err != nil {
-		actions.Say("couldn't open alias database")
+		actions.say("couldn't open alias database")
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 	defer db.Close()
 
-	alias := Alias{}
-	db.FirstOrCreate(&alias, Alias{Name: aliasName})
-	if len(alias.Text) != 0 {
-		actions.Say(fmt.Sprintf("%s: alias \"%s\" already exists", in.Event.Nick, aliasName))
+	aliasRow := alias{}
+	db.FirstOrCreate(&aliasRow, alias{Name: aliasName})
+	if len(aliasRow.Text) != 0 {
+		actions.say(fmt.Sprintf("%s: alias \"%s\" already exists", in.Event.Nick, aliasName))
 		return
 	}
-	db.Model(&alias).Updates(Alias{Text: aliasText, Date: time.Now()})
+	db.Model(&aliasRow).Updates(alias{Text: aliasText, Date: time.Now()})
 
-	actions.Say(fmt.Sprintf("%s: alias \"%s\" created", in.Event.Nick, aliasName))
+	actions.say(fmt.Sprintf("%s: alias \"%s\" created", in.Event.Nick, aliasName))
 }
 
-func DeleteAlias(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func deleteAlias(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	if in.Event.Nick != cfg.Admin.Owner {
-		actions.Say(fmt.Sprintf("%s: %s", in.Event.Nick, cfg.Admin.DenyMessage))
+		actions.say(fmt.Sprintf("%s: %s", in.Event.Nick, cfg.Admin.DenyMessage))
 		return
 	}
 
 	if len(in.MsgArgs) < 2 {
-		actions.Say(fmt.Sprintf("%s: usage: <alias-name>", in.Event.Nick))
+		actions.say(fmt.Sprintf("%s: usage: <alias-name>", in.Event.Nick))
 		return
 	}
 
 	aliasName := strings.TrimSpace(in.MsgArgs[1])
 
-	db, err := GetAliasDB(cfg)
+	db, err := getAliasDB(cfg)
 	if err != nil {
-		actions.Say("couldn't open alias database")
+		actions.say("couldn't open alias database")
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 	defer db.Close()
 
-	alias := Alias{}
-	db.First(&alias, Alias{Name: aliasName})
-	if len(alias.Text) == 0 {
-		actions.Say(fmt.Sprintf("%s: alias \"%s\" doesn't exist", in.Event.Nick, aliasName))
+	aliasRow := alias{}
+	db.First(&aliasRow, alias{Name: aliasName})
+	if len(aliasRow.Text) == 0 {
+		actions.say(fmt.Sprintf("%s: alias \"%s\" doesn't exist", in.Event.Nick, aliasName))
 		return
 	}
 
-	db.Delete(&alias)
-	actions.Say(fmt.Sprintf("%s: alias \"%s\" deleted", in.Event.Nick, aliasName))
+	db.Delete(&aliasRow)
+	actions.say(fmt.Sprintf("%s: alias \"%s\" deleted", in.Event.Nick, aliasName))
 }
 
-func ListAliases(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
-	db, err := GetAliasDB(cfg)
+func listAliases(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
+	db, err := getAliasDB(cfg)
 	if err != nil {
-		actions.Say("couldn't open alias database")
+		actions.say("couldn't open alias database")
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 	defer db.Close()
 
-	aliases := []Alias{}
+	aliases := []alias{}
 	db.Select("name").Find(&aliases)
 
 	if len(aliases) == 0 {
-		actions.Say(fmt.Sprintf("%s: no aliases found", in.Event.Nick))
+		actions.say(fmt.Sprintf("%s: no aliases found", in.Event.Nick))
 		return
 	}
 
@@ -167,5 +167,5 @@ func ListAliases(cfg *configure.Config, in *message.InboundMsg, actions *Actions
 	}
 	aliasesString := strings.Join(aliasesStrings, ", ")
 
-	actions.Say(fmt.Sprintf("%s: current list of aliases: %s", in.Event.Nick, aliasesString))
+	actions.say(fmt.Sprintf("%s: current list of aliases: %s", in.Event.Nick, aliasesString))
 }
