@@ -45,6 +45,8 @@ admin:
 http:
     # limit in bytes to stop reading an http response
     response_size_limit: 10485760
+    # time in seconds to allow for http requests
+    timeout: 30
 
 # This is a list of modules that irkbot supports. If you omit any of these, they
 # will not be loaded at runtime.

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 func ConfigYoutube(cfg *configure.Config) {
@@ -33,6 +34,7 @@ func Youtube(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	apiKey := cfg.Modules["youtube"]["api_key"]
 
 	client := &http.Client{
+		Timeout:   time.Duration(cfg.Http.Timeout) * time.Second,
 		Transport: &transport.APIKey{Key: apiKey},
 	}
 	service, err := youtube.New(client)

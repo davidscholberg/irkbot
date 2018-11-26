@@ -12,6 +12,7 @@ import (
 	urllib "net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 // Url attempts to fetch the title of the HTML document returned by a URL
@@ -29,7 +30,7 @@ func Url(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
 			continue
 		}
 		host := url.Host
-		title, err := getHtmlTitle(urlStr, cfg.Http.ResponseSizeLimit)
+		title, err := getHtmlTitle(urlStr, cfg.Http.ResponseSizeLimit, cfg.Http.Timeout)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			continue
@@ -96,8 +97,9 @@ func isCidrMatch(ip *net.IP, subnets []string) (bool, error) {
 }
 
 // getHtmlTitle returns the HTML title found at the given URL.
-func getHtmlTitle(url string, responseSizeLimit int64) (string, error) {
-	response, err := http.Get(url)
+func getHtmlTitle(url string, responseSizeLimit int64, timeout int64) (string, error) {
+	c := &http.Client{Timeout: time.Duration(timeout) * time.Second}
+	response, err := c.Get(url)
 	if err != nil {
 		return "", err
 	}

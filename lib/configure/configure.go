@@ -37,6 +37,7 @@ type Config struct {
 	} `yaml:"admin"`
 	Http struct {
 		ResponseSizeLimit int64 `yaml:"response_size_limit"`
+		Timeout           int64 `yaml:"timeout"`
 	} `yaml:"http"`
 	Modules map[string]map[string]string `yaml:"modules"`
 }
