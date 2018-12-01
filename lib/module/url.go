@@ -35,18 +35,31 @@ func parseUrls(cfg *configure.Config, in *message.InboundMsg, actions *actions) 
 			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
-		// split string by newline characters
-		titleFields := strings.FieldsFunc(title, func(c rune) bool {
-			return c == '\n' || c == '\r'
-		})
-		// join by newline separator
-		title = strings.Join(titleFields, " / ")
-		title = strings.TrimSpace(title)
-		actions.say(fmt.Sprintf("^ %s - [%s]", title, host))
+		cleanedTitle := cleanTitleWhiteSpace(title)
+		actions.say(fmt.Sprintf("^ %s - [%s]", cleanedTitle, host))
 	}
 
 	// don't consume the message, in case there are commands in it
 	return false
+}
+
+// cleanTitleWhiteSpace takes the contents of an html title and makes it fit
+// to be printed on a single line.
+func cleanTitleWhiteSpace(title string) string {
+	// split string by newline characters
+	titleFields := strings.FieldsFunc(title, func(c rune) bool {
+		return c == '\n' || c == '\r'
+	})
+	// trim each field
+	trimmedFields := []string{}
+	for _, field := range titleFields {
+		field = strings.TrimSpace(field)
+		if field != "" {
+			trimmedFields = append(trimmedFields, field)
+		}
+	}
+	// join by newline separator
+	return strings.Join(trimmedFields, " / ")
 }
 
 // validateUrl ensures that the given URL is safe to GET.
