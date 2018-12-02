@@ -29,8 +29,7 @@ func parseUrls(cfg *configure.Config, in *message.InboundMsg, actions *actions) 
 			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
-		host := url.Host
-		title, err := getHtmlTitle(urlStr, cfg.Http.ResponseSizeLimit, cfg.Http.Timeout)
+		title, host, err := getHtmlTitle(urlStr, cfg.Http.ResponseSizeLimit, cfg.Http.Timeout)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			continue
@@ -109,34 +108,35 @@ func isCidrMatch(ip *net.IP, subnets []string) (bool, error) {
 	return false, nil
 }
 
-// getHtmlTitle returns the HTML title found at the given URL.
-func getHtmlTitle(url string, responseSizeLimit int64, timeout int64) (string, error) {
+// getHtmlTitle returns the HTML title found at the given URL as well as the
+// final hostname (after any redirects).
+func getHtmlTitle(url string, responseSizeLimit int64, timeout int64) (string, string, error) {
 	c := &http.Client{Timeout: time.Duration(timeout) * time.Second}
 	response, err := c.Get(url)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer response.Body.Close()
 
 	// ignore response codes 400 and above
 	if response.StatusCode >= 400 {
-		return "", fmt.Errorf("received status %d", response.StatusCode)
+		return "", "", fmt.Errorf("received status %d", response.StatusCode)
 	}
 
 	doctree, err := html.Parse(io.LimitReader(response.Body, responseSizeLimit))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	title, err := searchForHtmlTitle(doctree)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	if len(title) == 0 {
-		return "", fmt.Errorf("title not found")
+		return "", "", fmt.Errorf("title not found")
 	}
 
-	return title, nil
+	return title, response.Request.URL.Host, nil
 }
 
 // searchForHtmlTitle searches the parsed html document for the title.
