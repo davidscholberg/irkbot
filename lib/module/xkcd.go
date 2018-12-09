@@ -22,13 +22,9 @@ func helpxkcd() []string {
 	return []string{s}
 }
 
-//Perform the actual GET and return the resulting body as a string
-func get(apiURL string, responseSizeLimit int64, timeout int64) (string, error) {
-	c := &http.Client{Timeout: time.Duration(timeout) * time.Second}
-	response, err := c.Get(apiURL)
-	if err != nil {
-		return "", err
-	}
+//Perform the actual GET and return the resulting body as a string.
+//This function closes the response body.
+func getComicString(response *http.Response, responseSizeLimit int64) (string, error) {
 	defer response.Body.Close()
 	bodyBytes, err := ioutil.ReadAll(io.LimitReader(response.Body, responseSizeLimit))
 	if err != nil {
@@ -64,7 +60,13 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	search := strings.Join(in.MsgArgs[1:], " ")
 	query.Add("query", search)
 	apiUrl := fmt.Sprintf(apiUrlFmtDefine, query.Encode())
-	comicString, comicErr := get(apiUrl, cfg.Http.ResponseSizeLimit, cfg.Http.Timeout)
+	response, err := actions.httpGet(apiUrl)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		actions.say("something borked, try again")
+		return
+	}
+	comicString, comicErr := getComicString(response, cfg.Http.ResponseSizeLimit)
 	if comicErr != nil {
 		fmt.Fprintln(os.Stderr, comicErr)
 		actions.say("something borked, try again")

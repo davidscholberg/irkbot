@@ -5,6 +5,8 @@ import (
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/thoj/go-ircevent"
+	"io"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -28,9 +30,11 @@ type tickerModule struct {
 }
 
 type actions struct {
-	quit  func()
-	say   func(string)
-	sayTo func(string, string)
+	httpGet  func(string) (*http.Response, error)
+	httpPost func(string, string, io.Reader) (*http.Response, error)
+	quit     func()
+	say      func(string)
+	sayTo    func(string, string)
 }
 
 func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan message.OutboundMsg) error {
@@ -114,7 +118,31 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		}
 	}
 
+	// global http client
+	httpClient := &http.Client{Timeout: time.Duration(cfg.Http.Timeout) * time.Second}
+
+	// global http request function
+	httpRequest := func(method string, url string, contentType string, body io.Reader) (*http.Response, error) {
+		request, err := http.NewRequest(method, url, body)
+		if err != nil {
+			return nil, err
+		}
+		if cfg.Http.UserAgent != "" {
+			request.Header.Set("User-Agent", cfg.Http.UserAgent)
+		}
+		if contentType != "" {
+			request.Header.Set("Content-Type", contentType)
+		}
+		return httpClient.Do(request)
+	}
+
 	actions := actions{
+		httpGet: func(url string) (*http.Response, error) {
+			return httpRequest("GET", url, "", nil)
+		},
+		httpPost: func(url string, contentType string, body io.Reader) (*http.Response, error) {
+			return httpRequest("POST", url, contentType, body)
+		},
 		quit: func() {
 			conn.Quit()
 		},

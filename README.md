@@ -47,6 +47,8 @@ http:
     response_size_limit: 10485760
     # time in seconds to allow for http requests
     timeout: 30
+    # user agent to use in http requests
+    user_agent: irkbot (+https://github.com/davidscholberg/irkbot)
 
 # This is a list of modules that irkbot supports. If you omit any of these, they
 # will not be loaded at runtime.

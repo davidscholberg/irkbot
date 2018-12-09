@@ -36,8 +36,9 @@ type Config struct {
 		DenyMessage string `yaml:"deny_message"`
 	} `yaml:"admin"`
 	Http struct {
-		ResponseSizeLimit int64 `yaml:"response_size_limit"`
-		Timeout           int64 `yaml:"timeout"`
+		ResponseSizeLimit int64  `yaml:"response_size_limit"`
+		Timeout           int64  `yaml:"timeout"`
+		UserAgent         string `yaml:"user_agent"`
 	} `yaml:"http"`
 	Modules map[string]map[string]string `yaml:"modules"`
 }

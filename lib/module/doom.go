@@ -6,22 +6,15 @@ import (
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
-	"net/http"
 	"os"
 	"strings"
-	"time"
 )
 
 type doomStruct struct {
 	Type string `json:"type"`
 }
 
-var doomHost string
 var doomValids = []string{"shoot", "forward", "backward", "left", "right", "use"}
-
-func configDoom(cfg *configure.Config) {
-	doomHost = cfg.Modules["doom"]["doom_host"]
-}
 
 func helpDoom() []string {
 	s := "doom <command> - play doom!"
@@ -53,13 +46,13 @@ func doom(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 		actions.say("something borked, try again")
 		return
 	}
-	c := &http.Client{Timeout: time.Duration(cfg.Http.Timeout) * time.Second}
-	resp, err := c.Post(doomHost, "application/json", bytes.NewReader(jsonValue))
+	doomHost := cfg.Modules["doom"]["doom_host"]
+	response, err := actions.httpPost(doomHost, "application/json", bytes.NewReader(jsonValue))
 	if err != nil {
 		// handle err
 		fmt.Fprintln(os.Stderr, err)
 		actions.say("something borked, try again")
 		return
 	}
-	defer resp.Body.Close()
+	defer response.Body.Close()
 }
