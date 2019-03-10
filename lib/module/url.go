@@ -142,6 +142,10 @@ func getHtmlTitle(response *http.Response, responseSizeLimit int64) (string, err
 // searchForHtmlTitle searches the parsed html document for the title.
 func searchForHtmlTitle(n *html.Node) (string, error) {
 	if n.Type == html.ElementNode && n.Data == "title" {
+		if n.FirstChild == nil {
+			err := fmt.Errorf("title node has no child")
+			return "", err
+		}
 		if n.FirstChild.Type != html.TextNode {
 			err := fmt.Errorf("child of title not TextNode type")
 			return "", err
