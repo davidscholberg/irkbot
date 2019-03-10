@@ -16,6 +16,11 @@ import (
 
 // parseUrls attempts to fetch the title of the HTML document returned by a URL
 func parseUrls(cfg *configure.Config, in *message.InboundMsg, actions *actions) bool {
+	// disallow url parsing in PMs
+	if !strings.HasPrefix(in.Src, "#") {
+		return false
+	}
+
 	urls := xurls.Strict().FindAllString(in.Msg, -1)
 
 	for _, urlStr := range urls {
