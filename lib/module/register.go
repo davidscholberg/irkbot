@@ -48,6 +48,8 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 			cmdMap["deletealias"] = &commandModule{nil, helpDeleteAlias, deleteAlias}
 			cmdMap["listaliases"] = &commandModule{nil, helpListAliases, listAliases}
 			parserModules = append(parserModules, &parserModule{configAlias, checkAliases})
+		case "direct_message_log":
+			parserModules = append(parserModules, &parserModule{nil, directMessageLog})
 		case "echo_name":
 			parserModules = append(parserModules, &parserModule{nil, echoName})
 		case "help":
