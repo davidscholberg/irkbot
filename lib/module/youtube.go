@@ -6,6 +6,7 @@ import (
 	"github.com/davidscholberg/irkbot/lib/message"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
+	"html"
 	"net/http"
 	"os"
 	"strings"
@@ -50,13 +51,13 @@ func youtubeSearch(cfg *configure.Config, in *message.InboundMsg, actions *actio
 		case "youtube#video":
 			result = fmt.Sprintf(
 				"%s - https://www.youtube.com/watch?v=%s",
-				item.Snippet.Title,
+				html.UnescapeString(item.Snippet.Title),
 				item.Id.VideoId,
 			)
 		case "youtube#channel":
 			result = fmt.Sprintf(
 				"%s - https://www.youtube.com/channel/%s",
-				item.Snippet.Title,
+				html.UnescapeString(item.Snippet.Title),
 				item.Id.ChannelId,
 			)
 		case "youtube#playlist":
@@ -67,7 +68,7 @@ func youtubeSearch(cfg *configure.Config, in *message.InboundMsg, actions *actio
 			}
 			result = fmt.Sprintf(
 				"%s - https://www.youtube.com/playlist?list=%s",
-				item.Snippet.Title,
+				html.UnescapeString(item.Snippet.Title),
 				playlistId,
 			)
 		}
