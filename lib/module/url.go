@@ -1,17 +1,23 @@
 package module
 
 import (
+	"context"
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
+	"github.com/dghubble/go-twitter/twitter"
 	"golang.org/x/net/html"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 	"io"
 	"mvdan.cc/xurls"
 	"net"
 	"net/http"
 	urllib "net/url"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 // parseUrls attempts to fetch the title of the HTML document returned by a URL
@@ -33,16 +39,28 @@ func parseUrls(cfg *configure.Config, in *message.InboundMsg, actions *actions) 
 			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
-		response, err := actions.httpGet(urlStr)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			continue
-		}
-		host := response.Request.URL.Host
-		title, err := getHtmlTitle(response, cfg.Http.ResponseSizeLimit)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			continue
+		title := ""
+		host := ""
+		if twitterConfigured(cfg) && isTweet(url) {
+			host = url.Host
+			var err error
+			title, err = getTwitterTitle(cfg, url)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
+		} else {
+			response, err := actions.httpGet(urlStr)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
+			host = response.Request.URL.Host
+			title, err = getHtmlTitle(response, cfg.Http.ResponseSizeLimit)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
 		}
 		cleanedTitle := cleanTitleWhiteSpace(title)
 		actions.say(fmt.Sprintf("^ %s - [%s]", cleanedTitle, host))
@@ -116,6 +134,73 @@ func isCidrMatch(ip *net.IP, subnets []string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+// isTweet determines if the URL is a tweet (i.e. a twitter status)
+func isTweet(url *urllib.URL) bool {
+	if url.Hostname() != "twitter.com" {
+		return false
+	}
+	// tokenize path (tweets should be in the format /:user/status/:id)
+	pathElements := strings.Split(url.EscapedPath(), "/")
+	if len(pathElements) != 4 {
+		return false
+	}
+	if pathElements[2] == "status" {
+		return true
+	}
+	return false
+}
+
+// twitterConfigured makes sure that the necessary twitter config is in place.
+func twitterConfigured(cfg *configure.Config) bool {
+	return cfg.Modules["url"]["twitter_client_id"] != "" && cfg.Modules["url"]["twitter_client_secret"] != ""
+}
+
+// getTwitterTitle takes the URL object and returns the title of the twitter
+// status.
+func getTwitterTitle(cfg *configure.Config, url *urllib.URL) (string, error) {
+	if !isTweet(url) {
+		return "", fmt.Errorf("URL is not a tweet")
+	}
+	if !twitterConfigured(cfg) {
+		return "", fmt.Errorf("twitter parameters are not in config")
+	}
+	// tokenize path (tweets should be in the format /:user/status/:id)
+	pathElements := strings.Split(url.EscapedPath(), "/")
+	statusIDStr := pathElements[3]
+	statusID, err := strconv.Atoi(statusIDStr)
+	if err != nil {
+		return "", err
+	}
+	oauth2Config := &clientcredentials.Config{
+		ClientID:     cfg.Modules["url"]["twitter_client_id"],
+		ClientSecret: cfg.Modules["url"]["twitter_client_secret"],
+		TokenURL:     "https://api.twitter.com/oauth2/token",
+	}
+	// configure http timeout for auth call
+	httpClientWithTimeout := &http.Client{
+		Timeout: time.Duration(cfg.Http.Timeout) * time.Second,
+	}
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, httpClientWithTimeout)
+	httpClient := oauth2Config.Client(ctx)
+	// configure http timeout for api call
+	httpClient.Timeout = time.Duration(cfg.Http.Timeout) * time.Second
+	twitterClient := twitter.NewClient(httpClient)
+	statusShowParams := &twitter.StatusShowParams{
+		TweetMode: "extended",
+	}
+	tweet, _, err := twitterClient.Statuses.Show(int64(statusID), statusShowParams)
+	if err != nil {
+		return "", err
+	}
+	if tweet != nil {
+		if tweet.User == nil {
+			return tweet.FullText, nil
+		}
+		return fmt.Sprintf("%s: \"%s\"", tweet.User.Name, tweet.FullText), nil
+	}
+	return "", err
 }
 
 // getHtmlTitle returns the HTML title found in the given response body.
