@@ -74,6 +74,8 @@ modules:
     urban_wotd:
     urban_trending:
     url:
+        twitter_client_id: key
+        twitter_client_secret: key
     # the weather module uses the OpenWeatherMap API
     weather:
         api_key: key
