@@ -1,10 +1,12 @@
 package module
 
 import (
+	"context"
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
-	"github.com/nishanths/go-xkcd/v2"
+	"github.com/nishanths/go-xkcd"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -77,17 +79,15 @@ func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 		actions.say("something borked, try again")
 		return
 	}
-	client := &xkcd.Client{
-		HTTPClient: &http.Client{Timeout: time.Duration(cfg.Http.Timeout) * time.Second},
-		Config:     xkcd.Config{UseHTTPS: true},
-	}
+	client := xkcd.NewClient()
+	client.HTTPClient = &http.Client{Timeout: time.Duration(cfg.Http.Timeout) * time.Second}
 	i, strconvErr := strconv.Atoi(comicNum)
 	if strconvErr != nil {
 		fmt.Fprintln(os.Stderr, strconvErr)
 		actions.say("something borked, try again")
 		return
 	}
-	comicGet, err := client.Get(i)
+	comicGet, err := client.Get(context.Background(), i)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		actions.say("something borked, try again")
