@@ -22,9 +22,10 @@ type Config struct {
 		ServerPassword string `yaml:"server_pass"`
 	} `yaml:"server"`
 	Channel struct {
-		ChannelName string `yaml:"channel_name"`
-		Greeting    string `yaml:"greeting"`
-		CmdPrefix   string `yaml:"cmd_prefix"`
+		ChannelName    string `yaml:"channel_name"`
+		Greeting       string `yaml:"greeting"`
+		CmdPrefix      string `yaml:"cmd_prefix"`
+		AutoJoinOnKick bool   `yaml:"auto_join_on_kick"`
 	} `yaml:"channel"`
 	Connection struct {
 		VerboseCallbackHandler bool `yaml:"verbose_callback_handler"`
@@ -34,6 +35,11 @@ type Config struct {
 		Owner       string `yaml:"owner"`
 		DenyMessage string `yaml:"deny_message"`
 	} `yaml:"admin"`
+	Http struct {
+		ResponseSizeLimit int64  `yaml:"response_size_limit"`
+		Timeout           int64  `yaml:"timeout"`
+		UserAgent         string `yaml:"user_agent"`
+	} `yaml:"http"`
 	Modules map[string]map[string]string `yaml:"modules"`
 }
 

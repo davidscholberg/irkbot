@@ -5,109 +5,150 @@ import (
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
 	"github.com/thoj/go-ircevent"
+	"io"
+	"net/http"
 	"strings"
 	"time"
 )
 
-type CommandModule struct {
-	Configure func(*configure.Config)
-	GetHelp   func() []string
-	Run       func(*configure.Config, *message.InboundMsg, *Actions)
+type commandModule struct {
+	configure func(*configure.Config)
+	getHelp   func() []string
+	run       func(*configure.Config, *message.InboundMsg, *actions)
 }
 
-type ParserModule struct {
-	Configure func(*configure.Config)
-	Run       func(*configure.Config, *message.InboundMsg, *Actions) bool
+type parserModule struct {
+	configure func(*configure.Config)
+	run       func(*configure.Config, *message.InboundMsg, *actions) bool
 }
 
-type TickerModule struct {
-	Configure   func(*configure.Config)
-	GetDuration func(*configure.Config) time.Duration
-	Run         func(*configure.Config, time.Time, *Actions)
-	Ticker      *time.Ticker
+type tickerModule struct {
+	configure   func(*configure.Config)
+	getDuration func(*configure.Config) time.Duration
+	run         func(*configure.Config, time.Time, *actions)
+	ticker      *time.Ticker
 }
 
-type Actions struct {
-	Quit  func()
-	Say   func(string)
-	SayTo func(string, string)
+type actions struct {
+	httpGet  func(string) (*http.Response, error)
+	httpPost func(string, string, io.Reader) (*http.Response, error)
+	quit     func()
+	say      func(string)
+	sayTo    func(string, string)
 }
 
 func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan message.OutboundMsg) error {
-	cmdMap := make(map[string]*CommandModule)
-	parserModules := []*ParserModule{}
-	tickerModules := []*TickerModule{}
+	cmdMap := make(map[string]*commandModule)
+	parserModules := []*parserModule{}
+	tickerModules := []*tickerModule{}
 	for moduleName, _ := range cfg.Modules {
 		switch moduleName {
+		case "alias":
+			cmdMap["createalias"] = &commandModule{nil, helpCreateAlias, createAlias}
+			cmdMap["deletealias"] = &commandModule{nil, helpDeleteAlias, deleteAlias}
+			cmdMap["listaliases"] = &commandModule{nil, helpListAliases, listAliases}
+			parserModules = append(parserModules, &parserModule{configAlias, checkAliases})
+		case "direct_message_log":
+			parserModules = append(parserModules, &parserModule{nil, directMessageLog})
 		case "echo_name":
-			parserModules = append(parserModules, &ParserModule{nil, EchoName})
+			parserModules = append(parserModules, &parserModule{nil, echoName})
 		case "help":
-			cmdMap["help"] = &CommandModule{nil, nil, Help}
-			parserModules = append(parserModules, &ParserModule{nil, ParseHelp})
+			cmdMap["help"] = &commandModule{nil, nil, help}
+			parserModules = append(parserModules, &parserModule{nil, parseHelp})
 		case "slam":
-			cmdMap["slam"] = &CommandModule{ConfigSlam, HelpSlam, Slam}
+			cmdMap["slam"] = &commandModule{configSlam, helpSlam, slam}
 		case "compliment":
-			cmdMap["compliment"] = &CommandModule{ConfigCompliment, HelpCompliment, GiveCompliment}
+			cmdMap["compliment"] = &commandModule{configCompliment, helpCompliment, giveCompliment}
 		case "quit":
-			cmdMap["quit"] = &CommandModule{nil, HelpQuit, Quit}
+			cmdMap["quit"] = &commandModule{nil, helpQuit, quit}
 		case "quote":
-			cmdMap["grab"] = &CommandModule{nil, HelpGrabQuote, GrabQuote}
-			cmdMap["quote"] = &CommandModule{nil, HelpGetQuote, GetQuote}
-			parserModules = append(parserModules, &ParserModule{ConfigQuote, UpdateQuoteBuffer})
+			cmdMap["grab"] = &commandModule{nil, helpGrabQuote, grabQuote}
+			cmdMap["quote"] = &commandModule{nil, helpGetQuote, getQuote}
+			parserModules = append(parserModules, &parserModule{configQuote, updateQuoteBuffer})
 			tickerModules = append(
 				tickerModules,
-				&TickerModule{
+				&tickerModule{
 					nil,
-					GetCleanQuoteBufferDuration,
-					CleanQuoteBuffer,
+					getCleanQuoteBufferDuration,
+					cleanQuoteBuffer,
 					nil,
 				},
 			)
 		case "say":
-			cmdMap["say"] = &CommandModule{nil, HelpSay, Say}
+			cmdMap["say"] = &commandModule{nil, helpSay, say}
 		case "urban":
-			cmdMap["urban"] = &CommandModule{nil, HelpUrban, Urban}
+			cmdMap["urban"] = &commandModule{nil, helpUrban, urban}
 		case "urban_wotd":
-			cmdMap["urban_wotd"] = &CommandModule{nil, HelpUrbanWotd, UrbanWotd}
+			cmdMap["urban_wotd"] = &commandModule{nil, helpUrbanWotd, urbanWotd}
 		case "urban_trending":
-			cmdMap["urban_trending"] = &CommandModule{nil, HelpUrbanTrending, UrbanTrending}
+			cmdMap["urban_trending"] = &commandModule{nil, helpUrbanTrending, urbanTrending}
 		case "url":
-			parserModules = append(parserModules, &ParserModule{nil, Url})
+			parserModules = append(parserModules, &parserModule{nil, parseUrls})
 		case "interject":
-			cmdMap["interject"] = &CommandModule{nil, HelpInterject, Interject}
+			cmdMap["interject"] = &commandModule{nil, helpInterject, interject}
 		case "xkcd":
-			cmdMap["xkcd"] = &CommandModule{nil, Helpxkcd, getXKCD}
+			cmdMap["xkcd"] = &commandModule{nil, helpxkcd, getXKCD}
 		case "doing":
-			cmdMap["doing"] = &CommandModule{ConfigDoing, HelpDoing, Doing}
+			cmdMap["doing"] = &commandModule{configDoing, helpDoing, doing}
 		case "doom":
-			cmdMap["doom"] = &CommandModule{nil, HelpDoom, Doom}
-		case "lenny":
-			cmdMap["lenny"] = &CommandModule{nil, HelpLenny, Lenny}
+			cmdMap["doom"] = &commandModule{nil, helpDoom, doom}
+		case "unit":
+			cmdMap["c2f"] = &commandModule{nil, helpC2F, c2F}
+			cmdMap["f2c"] = &commandModule{nil, helpF2C, f2C}
+		case "weather":
+			cmdMap["weather"] = &commandModule{nil, helpWeather, weather}
+		case "youtube":
+			cmdMap["yt"] = &commandModule{nil, helpYoutubeSearch, youtubeSearch}
 		default:
 			return fmt.Errorf("invalid name '%s' in module config", moduleName)
 		}
 	}
 
 	for _, m := range cmdMap {
-		if m.GetHelp != nil {
-			RegisterHelp(m.GetHelp())
+		if m.getHelp != nil {
+			registerHelp(m.getHelp())
 		}
-		if m.Configure != nil {
-			m.Configure(cfg)
+		if m.configure != nil {
+			m.configure(cfg)
 		}
 	}
+	sortHelp()
 
 	for _, m := range parserModules {
-		if m.Configure != nil {
-			m.Configure(cfg)
+		if m.configure != nil {
+			m.configure(cfg)
 		}
 	}
 
-	actions := Actions{
-		Quit: func() {
+	// global http client
+	httpClient := &http.Client{Timeout: time.Duration(cfg.Http.Timeout) * time.Second}
+
+	// global http request function
+	httpRequest := func(method string, url string, contentType string, body io.Reader) (*http.Response, error) {
+		request, err := http.NewRequest(method, url, body)
+		if err != nil {
+			return nil, err
+		}
+		if cfg.Http.UserAgent != "" {
+			request.Header.Set("User-Agent", cfg.Http.UserAgent)
+		}
+		if contentType != "" {
+			request.Header.Set("Content-Type", contentType)
+		}
+		return httpClient.Do(request)
+	}
+
+	actions := actions{
+		httpGet: func(url string) (*http.Response, error) {
+			return httpRequest("GET", url, "", nil)
+		},
+		httpPost: func(url string, contentType string, body io.Reader) (*http.Response, error) {
+			return httpRequest("POST", url, contentType, body)
+		},
+		quit: func() {
 			conn.Quit()
 		},
-		SayTo: func(dest string, msg string) {
+		sayTo: func(dest string, msg string) {
 			outboundMsg := message.OutboundMsg{
 				Conn: conn,
 				Dest: dest,
@@ -118,12 +159,12 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 	}
 
 	for _, m := range tickerModules {
-		if m.Configure != nil {
-			m.Configure(cfg)
+		if m.configure != nil {
+			m.configure(cfg)
 		}
-		m.Ticker = time.NewTicker(m.GetDuration(cfg))
-		tickerChan := m.Ticker.C
-		run := m.Run
+		m.ticker = time.NewTicker(m.getDuration(cfg))
+		tickerChan := m.ticker.C
+		run := m.run
 		go func() {
 			// Note that the sender of this channel will never close it.
 			// It must be closed manually after time.Stop in order to exit this goroutine.
@@ -143,7 +184,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		}
 		inboundMsg.Event = e
 
-		actions.Say = func(msg string) {
+		actions.say = func(msg string) {
 			outboundMsg := message.OutboundMsg{
 				Conn: conn,
 				Dest: inboundMsg.Src,
@@ -154,7 +195,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 
 		// run parser modules
 		for _, m := range parserModules {
-			if m.Run(cfg, &inboundMsg, &actions) {
+			if m.run(cfg, &inboundMsg, &actions) {
 				return
 			}
 		}
@@ -166,7 +207,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		}
 		if strings.HasPrefix(inboundMsg.Msg, cmdPrefix) {
 			if m, ok := cmdMap[strings.TrimPrefix(inboundMsg.MsgArgs[0], cmdPrefix)]; ok {
-				m.Run(cfg, &inboundMsg, &actions)
+				m.run(cfg, &inboundMsg, &actions)
 			}
 		}
 

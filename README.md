@@ -32,6 +32,7 @@ channel:
     channel_name: "#blahblah"
     greeting: "oh hai"
     cmd_prefix: "!"
+    auto_join_on_kick: False
 
 connection:
     verbose_callback_handler: False
@@ -41,9 +42,20 @@ admin:
     owner: mynick
     deny_message: yeah, i don't think so
 
+http:
+    # limit in bytes to stop reading an http response
+    response_size_limit: 10485760
+    # time in seconds to allow for http requests
+    timeout: 30
+    # user agent to use in http requests
+    user_agent: irkbot (+https://github.com/davidscholberg/irkbot)
+
 # This is a list of modules that irkbot supports. If you omit any of these, they
 # will not be loaded at runtime.
 modules:
+    alias:
+        # This is the location of the sqlite database used by the alias module.
+        db_file: /home/david/var/irkbot/alias.db
     echo_name:
     help:
     slam:
@@ -57,10 +69,18 @@ modules:
         # This is the location of the sqlite database used by the quotes module.
         db_file: /home/david/var/irkbot/quotes.db
     say:
+    unit:
     urban:
     urban_wotd:
     urban_trending:
     url:
+        twitter_client_id: key
+        twitter_client_secret: key
+    # the weather module uses the OpenWeatherMap API
+    weather:
+        api_key: key
+    youtube:
+        api_key: key
 ```
 
 ### Usage
@@ -96,13 +116,13 @@ import (
 	"strings"
 )
 
-func ConfigEcho(cfg *configure.Config) {
+func configEcho(cfg *configure.Config) {
 	// This is an optional function to configure the module. It is called only
 	// once when irkbot starts up.
 	// This function can be omitted if no configuration is needed.
 }
 
-func HelpEcho() []string {
+func helpEcho() []string {
 	// This function returns an array of strings describing this command's
 	// functionality. It is displayed when someone gives the help command in a
 	// channel or private message.
@@ -110,12 +130,12 @@ func HelpEcho() []string {
 	return []string{s}
 }
 
-func Echo(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func echo(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	// Grab the rest of the message.
 	msg := strings.Join(in.MsgArgs[1:], " ")
 
 	// Call the Say function (which does message rate-limiting)
-	actions.Say(msg)
+	actions.say(msg)
 }
 ```
 
@@ -123,14 +143,14 @@ The final step is to add the echo module functions to the switch statement in th
 
 ```go
 		case "echo":
-			cmdMap["echo"] = &CommandModule{ConfigEcho, HelpEcho, Echo}
+			cmdMap["echo"] = &CommandModule{configEcho, helpEcho, echo}
 ```
 
 If you omit the config function, the register function call would be:
 
 ```go
 		case "echo":
-			cmdMap["echo"] = &CommandModule{nil, HelpEcho, Echo}
+			cmdMap["echo"] = &CommandModule{nil, helpEcho, echo}
 ```
 
 To enable the module, you'll need to add it to the `modules` section of the Irkbot configuration file.
@@ -173,10 +193,6 @@ Now we can create a container to run Irkbot in.
 docker run --rm --volume irkbot-data-vol:/srv/db/irkbot --volume irkbot-config-vol:/root/.config/irkbot irkbot
 ```
 
-### TODO
+### Contributing
 
-* Alphabetize help string array.
-* Make reddit module.
-* Allow multiple channels.
-* Add time-based modules.
-* Implement max message length handling.
+PRs and issues for bug fixes and new features are welcome. If you'd like to make a new feature, please submit an issue for it first so that we can discuss requirements and implementation details beforehand.

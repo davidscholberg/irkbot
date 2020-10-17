@@ -33,8 +33,12 @@ func GetIrcConn(cfg *configure.Config) (*irc.Connection, error) {
 		}
 	})
 
-	// TODO: start multiple sayLoops, one per conn
-	// TODO: pass conn to sayLoop instead of privmsg callbacks?
+	conn.AddCallback("KICK", func(e *irc.Event) {
+		if cfg.Channel.AutoJoinOnKick {
+			conn.Join(cfg.Channel.ChannelName)
+		}
+	})
+
 	outChan := make(chan message.OutboundMsg)
 	go message.SayLoop(outChan)
 

@@ -6,15 +6,15 @@ import (
 	"github.com/davidscholberg/irkbot/lib/message"
 )
 
-func HelpQuit() []string {
+func helpQuit() []string {
 	s := "quit - ragequit IRC (requires owner privilege)"
 	return []string{s}
 }
 
-func Quit(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func quit(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	if in.Event.Nick != cfg.Admin.Owner {
-		actions.Say(fmt.Sprintf("%s: %s", in.Event.Nick, cfg.Admin.DenyMessage))
+		actions.say(fmt.Sprintf("%s: %s", in.Event.Nick, cfg.Admin.DenyMessage))
 		return
 	}
-	actions.Quit()
+	actions.quit()
 }

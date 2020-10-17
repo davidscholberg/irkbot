@@ -1,42 +1,92 @@
 package module
 
 import (
+	"context"
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
+	"github.com/dghubble/go-twitter/twitter"
 	"golang.org/x/net/html"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
+	"io"
 	"mvdan.cc/xurls"
 	"net"
 	"net/http"
 	urllib "net/url"
+	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
-// Url attempts to fetch the title of the HTML document returned by a URL
-func Url(cfg *configure.Config, in *message.InboundMsg, actions *Actions) bool {
+// parseUrls attempts to fetch the title of the HTML document returned by a URL
+func parseUrls(cfg *configure.Config, in *message.InboundMsg, actions *actions) bool {
+	// disallow url parsing in PMs
+	if !strings.HasPrefix(in.Src, "#") {
+		return false
+	}
+
 	urls := xurls.Strict().FindAllString(in.Msg, -1)
 
 	for _, urlStr := range urls {
 		url, err := urllib.Parse(urlStr)
 		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
-		if v, _ := validateUrl(url); !v {
+		if v, err := validateUrl(url); !v {
+			fmt.Fprintln(os.Stderr, err)
 			continue
 		}
-		host := url.Host
-		title, err := getHtmlTitle(urlStr)
-		if err != nil {
-			continue
+		title := ""
+		host := ""
+		if twitterConfigured(cfg) && isTweet(url) {
+			host = url.Host
+			var err error
+			title, err = getTwitterTitle(cfg, url)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
+		} else {
+			response, err := actions.httpGet(urlStr)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
+			host = response.Request.URL.Host
+			title, err = getHtmlTitle(response, cfg.Http.ResponseSizeLimit)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
 		}
-		title = strings.Replace(title, "\n", "", -1)
-		title = strings.Replace(title, "\r", "", -1)
-		title = strings.TrimSpace(title)
-		actions.Say(fmt.Sprintf("^ %s - [%s]", title, host))
+		cleanedTitle := cleanTitleWhiteSpace(title)
+		actions.say(fmt.Sprintf("^ %s - [%s]", cleanedTitle, host))
 	}
 
 	// don't consume the message, in case there are commands in it
 	return false
+}
+
+// cleanTitleWhiteSpace takes the contents of an html title and makes it fit
+// to be printed on a single line.
+func cleanTitleWhiteSpace(title string) string {
+	// split string by newline characters
+	titleFields := strings.FieldsFunc(title, func(c rune) bool {
+		return c == '\n' || c == '\r'
+	})
+	// trim each field
+	trimmedFields := []string{}
+	for _, field := range titleFields {
+		field = strings.TrimSpace(field)
+		if field != "" {
+			trimmedFields = append(trimmedFields, field)
+		}
+	}
+	// join by newline separator
+	return strings.Join(trimmedFields, " / ")
 }
 
 // validateUrl ensures that the given URL is safe to GET.
@@ -86,12 +136,76 @@ func isCidrMatch(ip *net.IP, subnets []string) (bool, error) {
 	return false, nil
 }
 
-// getHtmlTitle returns the HTML title found at the given URL.
-func getHtmlTitle(url string) (string, error) {
-	response, err := http.Get(url)
+// isTweet determines if the URL is a tweet (i.e. a twitter status)
+func isTweet(url *urllib.URL) bool {
+	if url.Hostname() != "twitter.com" {
+		return false
+	}
+	// tokenize path (tweets should be in the format /:user/status/:id)
+	pathElements := strings.Split(url.EscapedPath(), "/")
+	if len(pathElements) != 4 {
+		return false
+	}
+	if pathElements[2] == "status" {
+		return true
+	}
+	return false
+}
+
+// twitterConfigured makes sure that the necessary twitter config is in place.
+func twitterConfigured(cfg *configure.Config) bool {
+	return cfg.Modules["url"]["twitter_client_id"] != "" && cfg.Modules["url"]["twitter_client_secret"] != ""
+}
+
+// getTwitterTitle takes the URL object and returns the title of the twitter
+// status.
+func getTwitterTitle(cfg *configure.Config, url *urllib.URL) (string, error) {
+	if !isTweet(url) {
+		return "", fmt.Errorf("URL is not a tweet")
+	}
+	if !twitterConfigured(cfg) {
+		return "", fmt.Errorf("twitter parameters are not in config")
+	}
+	// tokenize path (tweets should be in the format /:user/status/:id)
+	pathElements := strings.Split(url.EscapedPath(), "/")
+	statusIDStr := pathElements[3]
+	statusID, err := strconv.Atoi(statusIDStr)
 	if err != nil {
 		return "", err
 	}
+	oauth2Config := &clientcredentials.Config{
+		ClientID:     cfg.Modules["url"]["twitter_client_id"],
+		ClientSecret: cfg.Modules["url"]["twitter_client_secret"],
+		TokenURL:     "https://api.twitter.com/oauth2/token",
+	}
+	// configure http timeout for auth call
+	httpClientWithTimeout := &http.Client{
+		Timeout: time.Duration(cfg.Http.Timeout) * time.Second,
+	}
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, httpClientWithTimeout)
+	httpClient := oauth2Config.Client(ctx)
+	// configure http timeout for api call
+	httpClient.Timeout = time.Duration(cfg.Http.Timeout) * time.Second
+	twitterClient := twitter.NewClient(httpClient)
+	statusShowParams := &twitter.StatusShowParams{
+		TweetMode: "extended",
+	}
+	tweet, _, err := twitterClient.Statuses.Show(int64(statusID), statusShowParams)
+	if err != nil {
+		return "", err
+	}
+	if tweet != nil {
+		if tweet.User == nil {
+			return tweet.FullText, nil
+		}
+		return fmt.Sprintf("%s: \"%s\"", tweet.User.Name, tweet.FullText), nil
+	}
+	return "", err
+}
+
+// getHtmlTitle returns the HTML title found in the given response body.
+// This function closes the response body.
+func getHtmlTitle(response *http.Response, responseSizeLimit int64) (string, error) {
 	defer response.Body.Close()
 
 	// ignore response codes 400 and above
@@ -99,7 +213,7 @@ func getHtmlTitle(url string) (string, error) {
 		return "", fmt.Errorf("received status %d", response.StatusCode)
 	}
 
-	doctree, err := html.Parse(response.Body)
+	doctree, err := html.Parse(io.LimitReader(response.Body, responseSizeLimit))
 	if err != nil {
 		return "", err
 	}
@@ -118,6 +232,10 @@ func getHtmlTitle(url string) (string, error) {
 // searchForHtmlTitle searches the parsed html document for the title.
 func searchForHtmlTitle(n *html.Node) (string, error) {
 	if n.Type == html.ElementNode && n.Data == "title" {
+		if n.FirstChild == nil {
+			err := fmt.Errorf("title node has no child")
+			return "", err
+		}
 		if n.FirstChild.Type != html.TextNode {
 			err := fmt.Errorf("child of title not TextNode type")
 			return "", err

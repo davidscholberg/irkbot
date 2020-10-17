@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
-	"net/http"
 	"os"
 	"strings"
 )
@@ -15,21 +14,16 @@ type doomStruct struct {
 	Type string `json:"type"`
 }
 
-var doomHost string
 var doomValids = []string{"shoot", "forward", "backward", "left", "right", "use"}
 
-func ConfigDoom(cfg *configure.Config) {
-	doomHost = cfg.Modules["doom"]["doom_host"]
-}
-
-func HelpDoom() []string {
+func helpDoom() []string {
 	s := "doom <command> - play doom!"
 	return []string{s}
 }
 
-func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+func doom(cfg *configure.Config, in *message.InboundMsg, actions *actions) {
 	if len(in.MsgArgs[1:]) == 0 {
-		actions.Say("enter a command, dipstick")
+		actions.say("enter a command plz")
 		return
 	}
 	doomCommand := strings.Join(in.MsgArgs[1:], " ")
@@ -41,7 +35,7 @@ func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		}
 	}
 	if !doomValid {
-		actions.Say(fmt.Sprintf("invalid command, commands are "+"%s", strings.Join(doomValids, ", ")))
+		actions.say(fmt.Sprintf("invalid command, commands are "+"%s", strings.Join(doomValids, ", ")))
 		return
 	}
 	doomToPost := doomStruct{Type: doomCommand}
@@ -49,15 +43,16 @@ func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	if err != nil {
 		// handle err
 		fmt.Fprintln(os.Stderr, err)
-		actions.Say("something borked, try again")
+		actions.say("something borked, try again")
 		return
 	}
-	resp, err := http.Post(doomHost, "application/json", bytes.NewReader(jsonValue))
+	doomHost := cfg.Modules["doom"]["doom_host"]
+	response, err := actions.httpPost(doomHost, "application/json", bytes.NewReader(jsonValue))
 	if err != nil {
 		// handle err
 		fmt.Fprintln(os.Stderr, err)
-		actions.Say("something borked, try again")
+		actions.say("something borked, try again")
 		return
 	}
-	defer resp.Body.Close()
+	defer response.Body.Close()
 }
