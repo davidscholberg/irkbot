@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/davidscholberg/irkbot/lib/configure"
 	"github.com/davidscholberg/irkbot/lib/message"
-	"github.com/nishanths/go-xkcd"
+	"github.com/nishanths/go-xkcd/v2"
 	"io/ioutil"
 	"net/http"
 	"net/url"
