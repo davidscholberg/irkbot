@@ -40,6 +40,9 @@ type Config struct {
 		Timeout           int64  `yaml:"timeout"`
 		UserAgent         string `yaml:"user_agent"`
 	} `yaml:"http"`
+	Ignore struct {
+		UsersToIgnore []string `yaml:"users_to_ignore"`
+	} `yaml:"ignore"`
 	Modules map[string]map[string]string `yaml:"modules"`
 }
 

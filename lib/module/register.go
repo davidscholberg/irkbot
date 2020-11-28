@@ -175,6 +175,13 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 	}
 
 	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
+		// check ignore list
+		for _, user := range cfg.Ignore.UsersToIgnore {
+			if e.Nick == user {
+				return
+			}
+		}
+
 		inboundMsg := message.InboundMsg{}
 		inboundMsg.Msg = e.Message()
 		inboundMsg.MsgArgs = strings.Fields(inboundMsg.Msg)
