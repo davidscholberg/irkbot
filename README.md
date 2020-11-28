@@ -50,6 +50,11 @@ http:
     # user agent to use in http requests
     user_agent: irkbot (+https://github.com/davidscholberg/irkbot)
 
+ignore:
+    # list of users that will be ignored if they send a message
+    users_to_ignore:
+        - "chanspy-dev"
+
 # This is a list of modules that irkbot supports. If you omit any of these, they
 # will not be loaded at runtime.
 modules:
